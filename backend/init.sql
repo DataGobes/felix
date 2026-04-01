@@ -416,3 +416,26 @@ CREATE INDEX IF NOT EXISTS idx_ingestion_jobs_completed_at
   ON ingestion_jobs (completed_at) WHERE completed_at IS NOT NULL;
 
 COMMENT ON TABLE ingestion_jobs IS 'Pipeline status tracking for document ingestion jobs';
+
+-- ─── Pipeline Config (enrichment toggles) ───────────────────────
+
+CREATE TABLE IF NOT EXISTS pipeline_config (
+  key VARCHAR(100) PRIMARY KEY,
+  value VARCHAR(100) NOT NULL,
+  label VARCHAR(200) NOT NULL,
+  description TEXT,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+INSERT INTO pipeline_config (key, value, label, description) VALUES
+  ('enable_code_enrichment', 'true', 'Code Enrichment',
+   'Classifies code blocks by language (50+ languages) using Granite-Docling-258M VLM. Moderate GPU/CPU cost.'),
+  ('enable_formula_enrichment', 'true', 'Formula Enrichment',
+   'Extracts LaTeX from visual equations using Granite-Docling-258M VLM. Moderate GPU/CPU cost.'),
+  ('enable_picture_description', 'false', 'Picture Description',
+   'Generates natural-language descriptions of images using SmolVLM-256M. High GPU/CPU cost — slow on CPU-only hardware.'),
+  ('enable_picture_classification', 'false', 'Picture Classification',
+   'Classifies images (chart, photo, diagram, etc.) using DocumentFigureClassifier. Moderate GPU/CPU cost.')
+ON CONFLICT (key) DO NOTHING;
+
+COMMENT ON TABLE pipeline_config IS 'Pipeline enrichment toggles readable by frontend control panel';

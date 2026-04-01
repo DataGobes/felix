@@ -5,7 +5,7 @@ function Footer() {
         <span className="text-[7px] font-bold text-ember font-mono">&gt;_</span>
       </div>
       <span className="text-xs text-warm-400">
-        Built by <span className="text-warm-500">datagobes.dev</span>
+        Built by <a href="https://datagobes.dev" target="_blank" rel="noopener noreferrer" className="text-warm-500 hover:text-ember transition-colors">datagobes.dev</a>
       </span>
     </footer>
   )

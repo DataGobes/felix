@@ -1,6 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
-  <rect width="40" height="40" rx="6" fill="#0d0d0d"/>
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace"
-        font-size="18" font-weight="700" fill="#c75c2c">&gt;_</text>
+  <rect width="40" height="40" rx="8" fill="#0d0d0d"/>
+  <!-- Cat face silhouette -->
+  <g transform="translate(20,21)" fill="#c75c2c">
+    <!-- Left ear -->
+    <polygon points="-10,-12 -7,-4 -13,-4"/>
+    <!-- Right ear -->
+    <polygon points="10,-12 7,-4 13,-4"/>
+    <!-- Head -->
+    <ellipse cx="0" cy="0" rx="11" ry="9"/>
+    <!-- Left eye -->
+    <ellipse cx="-4" cy="-1" rx="2" ry="2.2" fill="#0d0d0d"/>
+    <!-- Right eye -->
+    <ellipse cx="4" cy="-1" rx="2" ry="2.2" fill="#0d0d0d"/>
+    <!-- Nose -->
+    <polygon points="0,2.5 -1.2,4 1.2,4" fill="#0d0d0d"/>
+  </g>
 </svg>
