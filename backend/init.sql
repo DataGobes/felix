@@ -35,9 +35,29 @@ CREATE TABLE IF NOT EXISTS chunks (
     UNIQUE(document_id, chunk_index)
 );
 
+-- Full-text search vector column
+ALTER TABLE chunks ADD COLUMN IF NOT EXISTS content_tsv TSVECTOR;
+
+-- Auto-populate tsvector on insert/update
+CREATE OR REPLACE FUNCTION chunks_tsv_trigger() RETURNS trigger AS $$
+BEGIN
+  NEW.content_tsv := to_tsvector('english', COALESCE(NEW.content, ''));
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_chunks_tsv ON chunks;
+CREATE TRIGGER trg_chunks_tsv BEFORE INSERT OR UPDATE OF content ON chunks
+  FOR EACH ROW EXECUTE FUNCTION chunks_tsv_trigger();
+
+-- Backfill existing rows
+UPDATE chunks SET content_tsv = to_tsvector('english', COALESCE(content, ''))
+  WHERE content_tsv IS NULL;
+
 -- Create indexes for chunk lookups
 CREATE INDEX IF NOT EXISTS idx_chunks_document_id ON chunks(document_id);
 CREATE INDEX IF NOT EXISTS idx_chunks_chunk_index ON chunks(chunk_index);
+CREATE INDEX IF NOT EXISTS idx_chunks_content_tsv ON chunks USING GIN(content_tsv);
 
 -- Embeddings table: vector embeddings for chunks
 -- Using vector(1536) for text-embedding-3-small
