@@ -1,18 +1,17 @@
-const METRICS_URL = import.meta.env.VITE_METRICS_URL || '/api'
-const RAG_URL = import.meta.env.VITE_RAG_URL || '/api'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export const getMetrics = async () => {
-  const response = await fetch(`${METRICS_URL}/metrics`)
+  const response = await fetch(`${API_URL}/metrics`)
   return response.json()
 }
 
 export const getIndexes = async () => {
-  const response = await fetch(`${RAG_URL}/indexes`)
+  const response = await fetch(`${API_URL}/indexes`)
   return response.json()
 }
 
 export const createIndex = async (slug, displayName, description) => {
-  const response = await fetch(`${RAG_URL}/indexes`, {
+  const response = await fetch(`${API_URL}/indexes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ slug, display_name: displayName, description }),
@@ -25,7 +24,7 @@ export const createIndex = async (slug, displayName, description) => {
 }
 
 export const deleteIndex = async (slug) => {
-  const response = await fetch(`${RAG_URL}/indexes/${slug}`, { method: 'DELETE' })
+  const response = await fetch(`${API_URL}/indexes/${slug}`, { method: 'DELETE' })
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Failed to delete index' }))
     throw new Error(error.detail || 'Failed to delete index')
@@ -35,7 +34,7 @@ export const deleteIndex = async (slug) => {
 
 export const getDocuments = async (indexSlug) => {
   const params = indexSlug ? `?index_slug=${encodeURIComponent(indexSlug)}` : ''
-  const response = await fetch(`${RAG_URL}/documents${params}`)
+  const response = await fetch(`${API_URL}/documents${params}`)
   return response.json()
 }
 
@@ -49,7 +48,7 @@ export const searchDocuments = async (query, options = {}) => {
   if (includeTables) body.include_tables = true
   if (documentIds?.length) body.document_ids = documentIds
   if (indexSlug) body.index_slug = indexSlug
-  const response = await fetch(`${RAG_URL}/search`, {
+  const response = await fetch(`${API_URL}/search`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -58,50 +57,50 @@ export const searchDocuments = async (query, options = {}) => {
 }
 
 export const getChunks = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/chunks`)
+  const response = await fetch(`${API_URL}/documents/${id}/chunks`)
   return response.json()
 }
 
 export const getDocumentStructure = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/structure`)
+  const response = await fetch(`${API_URL}/documents/${id}/structure`)
   return response.json()
 }
 
 export const getDocumentPages = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/pages`)
+  const response = await fetch(`${API_URL}/documents/${id}/pages`)
   return response.json()
 }
 
 export const getPageElements = async (pageId, { includeText = false } = {}) => {
   const params = includeText ? '?include_text=true' : ''
-  const response = await fetch(`${RAG_URL}/pages/${pageId}/elements${params}`)
+  const response = await fetch(`${API_URL}/pages/${pageId}/elements${params}`)
   return response.json()
 }
 
-export const getImageUrl = (imageId) => `${RAG_URL}/images/${imageId}/file`
+export const getImageUrl = (imageId) => `${API_URL}/images/${imageId}/file`
 
 export const getChunkElements = async (chunkId) => {
-  const response = await fetch(`${RAG_URL}/chunks/${chunkId}/elements`)
+  const response = await fetch(`${API_URL}/chunks/${chunkId}/elements`)
   return response.json()
 }
 
 export const getChunk = async (chunkId) => {
-  const response = await fetch(`${RAG_URL}/chunks/${chunkId}`)
+  const response = await fetch(`${API_URL}/chunks/${chunkId}`)
   return response.json()
 }
 
 export const getChunkImages = async (chunkId) => {
-  const response = await fetch(`${RAG_URL}/chunks/${chunkId}/images`)
+  const response = await fetch(`${API_URL}/chunks/${chunkId}/images`)
   return response.json()
 }
 
 export const getChunkTables = async (chunkId) => {
-  const response = await fetch(`${RAG_URL}/chunks/${chunkId}/tables`)
+  const response = await fetch(`${API_URL}/chunks/${chunkId}/tables`)
   return response.json()
 }
 
 export const getImage = async (imageId) => {
-  const response = await fetch(`${RAG_URL}/images/${imageId}`)
+  const response = await fetch(`${API_URL}/images/${imageId}`)
   return response.json()
 }
 
@@ -109,7 +108,7 @@ export const uploadDocument = async (file, indexSlug) => {
   const formData = new FormData()
   formData.append('file', file)
   if (indexSlug) formData.append('index_slug', indexSlug)
-  const response = await fetch(`${RAG_URL}/upload`, { method: 'POST', body: formData })
+  const response = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData })
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Upload failed' }))
     throw new Error(error.detail || 'Upload failed')
@@ -118,7 +117,7 @@ export const uploadDocument = async (file, indexSlug) => {
 }
 
 export const deleteDocument = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}`, { method: 'DELETE' })
+  const response = await fetch(`${API_URL}/documents/${id}`, { method: 'DELETE' })
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Failed to delete document' }))
     throw new Error(error.detail || 'Failed to delete document')
@@ -127,39 +126,39 @@ export const deleteDocument = async (id) => {
 }
 
 export const getDocument = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/detail`)
+  const response = await fetch(`${API_URL}/documents/${id}/detail`)
   return response.json()
 }
 
 export const getDocumentTables = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/tables`)
+  const response = await fetch(`${API_URL}/documents/${id}/tables`)
   return response.json()
 }
 
 export const getDocumentImages = async (id) => {
-  const response = await fetch(`${RAG_URL}/documents/${id}/images`)
+  const response = await fetch(`${API_URL}/documents/${id}/images`)
   return response.json()
 }
 
 export const getImageDuplicates = async () => {
-  const response = await fetch(`${RAG_URL}/images/duplicates`)
+  const response = await fetch(`${API_URL}/images/duplicates`)
   return response.json()
 }
 
 export const searchElements = async (documentId, { elementType, limit = 200 } = {}) => {
   const params = new URLSearchParams({ document_id: documentId, limit })
   if (elementType) params.set('element_type', elementType)
-  const response = await fetch(`${RAG_URL}/elements/search?${params}`)
+  const response = await fetch(`${API_URL}/elements/search?${params}`)
   return response.json()
 }
 
 export const getConfig = async () => {
-  const response = await fetch(`${RAG_URL}/config`)
+  const response = await fetch(`${API_URL}/config`)
   return response.json()
 }
 
 export const updateConfig = async (updates) => {
-  const response = await fetch(`${RAG_URL}/config`, {
+  const response = await fetch(`${API_URL}/config`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),
@@ -169,16 +168,16 @@ export const updateConfig = async (updates) => {
 
 export const getIngestionStatus = async (indexSlug) => {
   const params = indexSlug ? `?index_slug=${encodeURIComponent(indexSlug)}` : ''
-  const response = await fetch(`${RAG_URL}/ingestion/status${params}`)
+  const response = await fetch(`${API_URL}/ingestion/status${params}`)
   return response.json()
 }
 
-export const INGESTION_STREAM_URL = `${RAG_URL}/ingestion/stream`
+export const INGESTION_STREAM_URL = `${API_URL}/ingestion/stream`
 
 export async function* streamChat(message, history = [], indexSlug = null) {
   const body = { message, history }
   if (indexSlug) body.index_slug = indexSlug
-  const response = await fetch(`${RAG_URL}/chat`, {
+  const response = await fetch(`${API_URL}/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
