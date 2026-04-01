@@ -39,9 +39,7 @@ function LandingPage() {
       {/* Hero */}
       <section className="py-20 px-6 text-center">
         <div className="max-w-xl mx-auto">
-          <div className="w-14 h-14 rounded-xl bg-[#0d0d0d] flex items-center justify-center mx-auto mb-6">
-            <span className="text-ember text-xl font-bold font-mono">&gt;_</span>
-          </div>
+          <img src="/felix-logo.svg" alt="Felix" className="w-14 h-14 mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-warm-900 leading-tight mb-4">
             Document Intelligence<br />for your business
           </h1>
