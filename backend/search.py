@@ -1580,7 +1580,7 @@ async def chat(request: ChatRequest):
                             after = _think_buf.split("</think>", 1)[1]
                             _in_think = False
                             _think_buf = ""
-                            if after:
+                            if after and after.strip():
                                 event = {"type": "token", "content": after}
                                 yield f"data: {json.dumps(event)}\n\n"
                         continue
@@ -1591,7 +1591,7 @@ async def chat(request: ChatRequest):
                             yield f"data: {json.dumps(event)}\n\n"
                         if "</think>" in rest:
                             after = rest.split("</think>", 1)[1]
-                            if after:
+                            if after and after.strip():
                                 event = {"type": "token", "content": after}
                                 yield f"data: {json.dumps(event)}\n\n"
                         else:
