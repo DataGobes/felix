@@ -1492,7 +1492,7 @@ _chat_client = _AsyncOpenAI(
     api_key=os.environ.get("MINIMAX_API_KEY", ""),
     base_url="https://api.minimaxi.chat/v1",
 )
-_CHAT_MODEL = os.environ.get("CHAT_MODEL", "MiniMax-M1")
+_CHAT_MODEL = os.environ.get("CHAT_MODEL", "MiniMax-M2.7")
 
 _CHAT_SYSTEM_PROMPT = """You are Felix, a document intelligence assistant. You help users understand and explore their ingested documents.
 
