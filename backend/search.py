@@ -1486,14 +1486,13 @@ async def ingestion_stream(index_slug: str = None):
     )
 
 # ── Chat Agent ───────────────────────────────────────────────────
-from openai import AsyncAzureOpenAI as _AsyncAzureOpenAI
+from openai import AsyncOpenAI as _AsyncOpenAI
 
-_chat_client = _AsyncAzureOpenAI(
-    azure_endpoint=AZURE_ENDPOINT,
-    api_key=AZURE_API_KEY,
-    api_version=AZURE_API_VERSION,
+_chat_client = _AsyncOpenAI(
+    api_key=os.environ.get("MINIMAX_API_KEY", ""),
+    base_url="https://api.minimaxi.chat/v1",
 )
-_CHAT_MODEL = "gpt-5-mini"
+_CHAT_MODEL = os.environ.get("CHAT_MODEL", "MiniMax-M1")
 
 _CHAT_SYSTEM_PROMPT = """You are Felix, a document intelligence assistant. You help users understand and explore their ingested documents.
 
