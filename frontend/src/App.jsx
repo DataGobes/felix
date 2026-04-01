@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Routes, Route, Link, Outlet, useLocation } from 'react-router-dom'
-import MetricsBar from './components/MetricsBar'
 import Documents from './components/Documents'
 import Search from './components/Search'
 import Chat from './components/Chat'
 import ChunksViewer from './components/ChunksViewer'
 import ControlPanel from './components/ControlPanel'
 import DocumentViewer from './pages/DocumentViewer'
-import MatrixRain from './components/MatrixRain'
 import IngestionPipeline from './components/IngestionPipeline'
 
 function Shell() {
@@ -15,7 +13,6 @@ function Shell() {
 
   return (
     <div className="h-screen flex flex-col bg-[#050505] text-[#c8e6c8] relative">
-      <MatrixRain />
       {/* Header */}
       <header className="border-b border-[#0d2b0d] px-6 h-14 flex-shrink-0 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-6">
@@ -52,11 +49,6 @@ function Shell() {
           <span className="text-xs text-[#3d6b3d]">Document Intelligence</span>
         </div>
       </header>
-
-      {/* Metrics Bar */}
-      <div className="relative z-10">
-        <MetricsBar />
-      </div>
 
       {/* Main Content */}
       <main className="flex-1 min-h-0 overflow-auto relative z-10">
