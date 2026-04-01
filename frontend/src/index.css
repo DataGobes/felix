@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 100% 1%;
+    --foreground: 120 20% 85%;
+    --card: 120 25% 3%;
+    --card-foreground: 120 20% 85%;
+    --popover: 120 25% 3%;
+    --popover-foreground: 120 20% 85%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 120 25% 8%;
+    --secondary-foreground: 120 20% 85%;
+    --muted: 120 25% 8%;
+    --muted-foreground: 120 30% 33%;
+    --accent: 120 25% 8%;
+    --accent-foreground: 120 20% 85%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 40% 11%;
+    --input: 120 40% 11%;
+    --ring: 120 100% 50%;
+    --radius: 0.75rem;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: #050505;
+    color: hsl(var(--foreground));
+    font-family: 'Share Tech Mono', monospace;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 65, 0.015) 2px,
+    rgba(0, 255, 65, 0.015) 4px
+  );
+}
+
+/* Glow effect for active elements */
+.matrix-glow {
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.15), 0 0 30px rgba(0, 255, 65, 0.05);
+}
+
+/* Glitch animation for Felix logo */
+@keyframes glitch {
+  0%, 100% { text-shadow: 2px 0 #00ff41, -2px 0 #00e5ff; }
+  25% { text-shadow: -2px -1px #00ff41, 2px 1px #00e5ff; }
+  50% { text-shadow: 1px 2px #00ff41, -1px -2px #00e5ff; }
+  75% { text-shadow: -1px 1px #00ff41, 1px -1px #00e5ff; }
+}
+
+/* Ingestion pipeline: pulsing glow on active stage node */
+@keyframes pipeline-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(0, 255, 65, 0.3), 0 0 8px rgba(0, 255, 65, 0.1); }
+  50% { box-shadow: 0 0 8px rgba(0, 255, 65, 0.6), 0 0 16px rgba(0, 255, 65, 0.2); }
+}
+
+.pipeline-pulse {
+  animation: pipeline-pulse 1.5s ease-in-out infinite;
+}
+
+/* Ingestion pipeline: data flow animation on active connector */
+@keyframes data-flow {
+  0% { background-position: 0 0; }
+  100% { background-position: 16px 0; }
+}
+
+.data-flow {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 255, 65, 0.4) 0px,
+    rgba(0, 255, 65, 0.4) 4px,
+    transparent 4px,
+    transparent 8px
+  ) !important;
+  background-size: 16px 2px;
+  animation: data-flow 0.6s linear infinite;
+}
+
+/* Chat: typing indicator dots */
+@keyframes typing-dot {
+  0%, 60%, 100% { opacity: 0.3; }
+  30% { opacity: 1; }
+}
+
+.typing-dot {
+  animation: typing-dot 1.4s infinite;
+}
+
+/* Graph view: selected node glow pulse */
+@keyframes graph-node-pulse {
+  0%, 100% { r: 20; opacity: 0.4; }
+  50% { r: 26; opacity: 0.15; }
+}
+
+/* Graph view: node appear with bounce */
+@keyframes graph-node-appear {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Graph view: link draw-in via stroke dash */
+@keyframes graph-link-draw {
+  from { stroke-dashoffset: 500; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Graph view: particle flowing along a link */
+@keyframes graph-flow-particle {
+  0% { offset-distance: 0%; opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* Graph view: expanding ring on expand click */
+@keyframes graph-expand-ring {
+  0% { r: 10; opacity: 0.6; stroke-width: 2; }
+  100% { r: 40; opacity: 0; stroke-width: 0.5; }
+}
+
+.graph-node-appear {
+  transform-box: fill-box;
+  transform-origin: center center;
+  animation: graph-node-appear 0.4s ease-out both;
+}
+
+.graph-link-draw {
+  stroke-dasharray: 500;
+  animation: graph-link-draw 0.6s ease-out forwards;
+}
+
