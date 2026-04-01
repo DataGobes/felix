@@ -80,33 +80,33 @@ function Chat() {
   }
 
   return (
-    <div className="bg-[#0a0f0a] rounded-xl shadow-lg shadow-black/20 overflow-hidden flex flex-col min-h-[400px]" style={{ height: 'calc(100vh - 280px)' }}>
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[400px]" style={{ height: 'calc(100vh - 280px)' }}>
       {/* Header */}
       <div className="px-6 pt-5 pb-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <h2 className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Chat</h2>
-          <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-[#00ff41]/10 text-[#00ff41] uppercase">
+          <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wider">Chat</h2>
+          <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-ember/[0.08] text-ember uppercase">
             MiniMax-M2.7
           </span>
         </div>
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-1.5 cursor-pointer">
-            <span className="text-[10px] text-[#3d6b3d]">Thinking</span>
+            <span className="text-[10px] text-warm-500">Thinking</span>
             <button
               onClick={() => setShowThinking(v => !v)}
               className={`relative w-7 h-4 rounded-full transition-colors ${
-                showThinking ? 'bg-[#00ff41]/30' : 'bg-[#1a1a1a]'
+                showThinking ? 'bg-ember/30' : 'bg-warm-200'
               }`}
             >
               <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
-                showThinking ? 'left-3.5 bg-[#00ff41]' : 'left-0.5 bg-[#3d6b3d]'
+                showThinking ? 'left-3.5 bg-ember' : 'left-0.5 bg-warm-400'
               }`} />
             </button>
           </label>
           <button
             onClick={handleClear}
             disabled={streaming || messages.length === 0}
-            className="text-xs text-[#3d6b3d] hover:text-[#8ab88a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="text-xs text-warm-500 hover:text-warm-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             Clear
           </button>
@@ -118,8 +118,8 @@ function Chat() {
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-2">
-              <p className="text-sm text-[#3d6b3d]">Ask anything about your documents</p>
-              <p className="text-xs text-[#2a4a2a]">Felix will search and synthesize answers</p>
+              <p className="text-sm text-warm-500">Ask anything about your documents</p>
+              <p className="text-xs text-warm-400">Felix will search and synthesize answers</p>
             </div>
           </div>
         )}
@@ -128,29 +128,29 @@ function Chat() {
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] rounded-lg px-4 py-3 ${
               msg.role === 'user'
-                ? 'bg-[#00ff41]/[0.06] border border-[#00ff41]/20'
-                : 'bg-[#00ff41]/[0.02] border border-[#0d2b0d]'
+                ? 'bg-ember/[0.06] border border-ember/20'
+                : 'bg-warm-100 border border-warm-200'
             }`}>
               {/* Message content */}
               <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                msg.error ? 'text-red-400/80' : 'text-[#8ab88a]'
+                msg.error ? 'text-red-600' : 'text-warm-600'
               }`}>
                 {msg.content}
                 {streaming && i === messages.length - 1 && msg.role === 'assistant' && (
-                  <span className="inline-block w-1.5 h-4 bg-[#00ff41] ml-0.5 animate-pulse" />
+                  <span className="inline-block w-1.5 h-4 bg-ember ml-0.5 animate-pulse" />
                 )}
               </p>
 
               {/* Citations */}
               {msg.citations && msg.citations.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#0d2b0d] space-y-1.5">
-                  <p className="text-[10px] font-medium text-[#3d6b3d] uppercase tracking-wider">Sources</p>
+                <div className="mt-3 pt-3 border-t border-warm-200 space-y-1.5">
+                  <p className="text-[10px] font-medium text-warm-500 uppercase tracking-wider">Sources</p>
                   {msg.citations.map((cite, j) => (
                     <div key={j} className="flex items-start gap-2 text-xs">
-                      <span className="text-[#00ff41]/60 flex-shrink-0 mt-0.5">[{j + 1}]</span>
+                      <span className="text-ember/60 flex-shrink-0 mt-0.5">[{j + 1}]</span>
                       <div className="min-w-0">
-                        <span className="text-[#00e5ff]/70 break-all">{cite.document_path}</span>
-                        <p className="text-[#2a4a2a] truncate mt-0.5">{cite.content}</p>
+                        <span className="text-warm-600 break-all">{cite.document_path}</span>
+                        <p className="text-warm-400 truncate mt-0.5">{cite.content}</p>
                       </div>
                     </div>
                   ))}
@@ -163,11 +163,11 @@ function Chat() {
         {/* Tool call indicator */}
         {searchingFor && (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#00ff41]/[0.03] border border-[#0d2b0d] text-xs text-[#3d6b3d]">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warm-bg border border-warm-200 text-xs text-warm-500">
               <span className="flex gap-0.5">
-                <span className="typing-dot w-1 h-1 rounded-full bg-[#00ff41]" style={{ animationDelay: '0s' }} />
-                <span className="typing-dot w-1 h-1 rounded-full bg-[#00ff41]" style={{ animationDelay: '0.2s' }} />
-                <span className="typing-dot w-1 h-1 rounded-full bg-[#00ff41]" style={{ animationDelay: '0.4s' }} />
+                <span className="typing-dot w-1 h-1 rounded-full bg-ember" style={{ animationDelay: '0s' }} />
+                <span className="typing-dot w-1 h-1 rounded-full bg-ember" style={{ animationDelay: '0.2s' }} />
+                <span className="typing-dot w-1 h-1 rounded-full bg-ember" style={{ animationDelay: '0.4s' }} />
               </span>
               Searching: {searchingFor}
             </div>
@@ -176,7 +176,7 @@ function Chat() {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 border-t border-[#0d2b0d] flex-shrink-0">
+      <div className="px-6 py-4 border-t border-warm-200 flex-shrink-0">
         <div className="flex gap-2">
           <input
             ref={inputRef}
@@ -185,12 +185,12 @@ function Chat() {
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder="Ask about your documents..."
             disabled={streaming}
-            className="flex-1 h-9 px-3 text-sm rounded-lg bg-[#00ff41]/[0.03] border border-[#0d2b0d] text-[#c8e6c8] placeholder:text-[#3d6b3d] focus:outline-none focus:ring-1 focus:ring-[#00ff41]/50 disabled:opacity-50 transition-colors"
+            className="flex-1 h-9 px-3 text-sm rounded-lg bg-warm-bg border border-warm-200 text-warm-900 placeholder:text-warm-500 focus:outline-none focus:ring-1 focus:ring-ember/50 disabled:opacity-50 transition-colors"
           />
           <button
             onClick={handleSend}
             disabled={streaming || !input.trim()}
-            className="h-9 px-4 text-xs font-medium rounded-lg bg-[#00ff41] text-black hover:bg-[#00cc33] disabled:opacity-50 transition-colors"
+            className="h-9 px-4 text-xs font-medium rounded-lg bg-ember text-white hover:bg-ember/90 disabled:opacity-50 transition-colors"
           >
             {streaming ? 'Thinking...' : 'Send'}
           </button>
