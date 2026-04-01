@@ -174,8 +174,8 @@ export const getIngestionStatus = async (indexSlug) => {
 
 export const INGESTION_STREAM_URL = `${API_URL}/ingestion/stream`
 
-export async function* streamChat(message, history = [], indexSlug = null) {
-  const body = { message, history }
+export async function* streamChat(message, history = [], indexSlug = null, { showThinking = false } = {}) {
+  const body = { message, history, show_thinking: showThinking }
   if (indexSlug) body.index_slug = indexSlug
   const response = await fetch(`${API_URL}/chat`, {
     method: 'POST',

@@ -1524,6 +1524,7 @@ class ChatRequest(BaseModel):
     message: str
     history: list[dict] = []
     index_slug: Optional[str] = None
+    show_thinking: bool = False
 
 
 async def _execute_document_search(query: str, top_k: int = 5) -> list[dict]:
@@ -1556,6 +1557,8 @@ async def chat(request: ChatRequest):
 
             collected_content = ""
             tool_calls_acc = {}
+            _in_think = False
+            _think_buf = ""
 
             async for chunk in stream:
                 if not chunk.choices:
@@ -1565,7 +1568,37 @@ async def chat(request: ChatRequest):
 
                 if delta.content:
                     collected_content += delta.content
-                    event = {"type": "token", "content": delta.content}
+                    # Strip <think>...</think> blocks unless show_thinking is on
+                    text = delta.content
+                    if request.show_thinking:
+                        event = {"type": "token", "content": text}
+                        yield f"data: {json.dumps(event)}\n\n"
+                        continue
+                    if _in_think:
+                        _think_buf += text
+                        if "</think>" in _think_buf:
+                            after = _think_buf.split("</think>", 1)[1]
+                            _in_think = False
+                            _think_buf = ""
+                            if after:
+                                event = {"type": "token", "content": after}
+                                yield f"data: {json.dumps(event)}\n\n"
+                        continue
+                    if "<think>" in text:
+                        before, rest = text.split("<think>", 1)
+                        if before:
+                            event = {"type": "token", "content": before}
+                            yield f"data: {json.dumps(event)}\n\n"
+                        if "</think>" in rest:
+                            after = rest.split("</think>", 1)[1]
+                            if after:
+                                event = {"type": "token", "content": after}
+                                yield f"data: {json.dumps(event)}\n\n"
+                        else:
+                            _in_think = True
+                            _think_buf = rest
+                        continue
+                    event = {"type": "token", "content": text}
                     yield f"data: {json.dumps(event)}\n\n"
 
                 if delta.tool_calls:

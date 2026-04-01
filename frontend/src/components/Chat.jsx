@@ -6,6 +6,7 @@ function Chat() {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [searchingFor, setSearchingFor] = useState(null)
+  const [showThinking, setShowThinking] = useState(false)
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -33,7 +34,7 @@ function Chat() {
     setMessages(prev => [...prev, { role: 'assistant', content: '', citations: [] }])
 
     try {
-      for await (const event of streamChat(text, history)) {
+      for await (const event of streamChat(text, history, null, { showThinking })) {
         if (event.type === 'token') {
           setMessages(prev => {
             const updated = [...prev]
@@ -85,16 +86,31 @@ function Chat() {
         <div className="flex items-center gap-3">
           <h2 className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Chat</h2>
           <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-[#00ff41]/10 text-[#00ff41] uppercase">
-            gpt-5-mini
+            MiniMax-M2.7
           </span>
         </div>
-        <button
-          onClick={handleClear}
-          disabled={streaming || messages.length === 0}
-          className="text-xs text-[#3d6b3d] hover:text-[#8ab88a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-        >
-          Clear
-        </button>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <span className="text-[10px] text-[#3d6b3d]">Thinking</span>
+            <button
+              onClick={() => setShowThinking(v => !v)}
+              className={`relative w-7 h-4 rounded-full transition-colors ${
+                showThinking ? 'bg-[#00ff41]/30' : 'bg-[#1a1a1a]'
+              }`}
+            >
+              <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${
+                showThinking ? 'left-3.5 bg-[#00ff41]' : 'left-0.5 bg-[#3d6b3d]'
+              }`} />
+            </button>
+          </label>
+          <button
+            onClick={handleClear}
+            disabled={streaming || messages.length === 0}
+            className="text-xs text-[#3d6b3d] hover:text-[#8ab88a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
