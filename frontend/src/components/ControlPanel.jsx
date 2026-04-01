@@ -11,17 +11,17 @@ function Toggle({ enabled, onToggle, disabled }) {
       aria-checked={enabled}
       disabled={disabled}
       onClick={onToggle}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#00ff41]/30 focus:ring-offset-2 focus:ring-offset-[#0a0f0a] disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ember/30 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 ${
         enabled
-          ? 'border-[#00ff41]/60 bg-[#00ff41]/20'
-          : 'border-[#1a3a1a] bg-[#0d1f0d]'
+          ? 'border-ember/60 bg-ember/20'
+          : 'border-warm-200 bg-warm-bg'
       }`}
     >
       <span
         className={`pointer-events-none inline-block h-5 w-5 rounded-full shadow-lg transition-transform duration-200 ${
           enabled
-            ? 'translate-x-5 bg-[#00ff41] shadow-[0_0_8px_#00ff41]'
-            : 'translate-x-0 bg-[#3d6b3d]'
+            ? 'translate-x-5 bg-ember'
+            : 'translate-x-0 bg-warm-400'
         }`}
       />
     </button>
@@ -46,20 +46,20 @@ function TextConfigField({ item, saving, saved, onSave }) {
   }
 
   return (
-    <div className="bg-[#0a0f0a] rounded-xl border border-[#0d2b0d]">
+    <div className="bg-white rounded-xl border border-warm-200">
       <div className="px-6 py-5">
         <div className="flex items-center gap-2.5 mb-1.5">
-          <h3 className="text-sm font-medium text-[#5a8a5a]">{item.label}</h3>
+          <h3 className="text-sm font-medium text-warm-600">{item.label}</h3>
           {saved && (
-            <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded animate-pulse">
+            <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded animate-pulse">
               saved
             </span>
           )}
           {saving && (
-            <div className="w-3 h-3 border border-[#00ff41]/40 border-t-[#00ff41] rounded-full animate-spin" />
+            <div className="w-3 h-3 border border-ember/40 border-t-ember rounded-full animate-spin" />
           )}
         </div>
-        <p className="text-xs text-[#2a4a2a] leading-relaxed mb-3">{item.description}</p>
+        <p className="text-xs text-warm-400 leading-relaxed mb-3">{item.description}</p>
         <input
           ref={inputRef}
           type="text"
@@ -68,7 +68,7 @@ function TextConfigField({ item, saving, saved, onSave }) {
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           disabled={saving}
-          className="w-full bg-[#0d1f0d] border border-[#1a3a1a] rounded-lg px-3 py-2 text-xs text-[#c8e6c8] font-mono placeholder-[#1e3a1e] focus:outline-none focus:border-[#00ff41]/40 focus:ring-1 focus:ring-[#00ff41]/20 transition-colors disabled:opacity-50"
+          className="w-full bg-warm-bg border border-warm-200 rounded-lg px-3 py-2 text-xs text-warm-900 font-mono placeholder-warm-400 focus:outline-none focus:border-ember/40 focus:ring-1 focus:ring-ember/20 transition-colors disabled:opacity-50"
           placeholder="https://..."
         />
       </div>
@@ -145,10 +145,10 @@ function ControlPanel() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-[#0a0f0a] rounded-xl shadow-lg shadow-black/20 p-8">
+        <div className="bg-white rounded-xl shadow-sm p-8">
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-[#00ff41]/40 border-t-[#00ff41] rounded-full animate-spin" />
-            <span className="text-sm text-[#3d6b3d]">Loading pipeline configuration...</span>
+            <div className="w-4 h-4 border-2 border-ember/40 border-t-ember rounded-full animate-spin" />
+            <span className="text-sm text-warm-500">Loading pipeline configuration...</span>
           </div>
         </div>
       </div>
@@ -158,8 +158,8 @@ function ControlPanel() {
   if (error && !config) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-[#0a0f0a] rounded-xl shadow-lg shadow-black/20 p-8">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="bg-white rounded-xl shadow-sm p-8">
+          <p className="text-sm text-red-600">{error}</p>
         </div>
       </div>
     )
@@ -168,12 +168,12 @@ function ControlPanel() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-lg font-bold text-[#00ff41] tracking-wider uppercase">Pipeline Settings</h1>
-        <p className="text-xs text-[#3d6b3d] mt-1">Configure document enrichment features for the ingestion pipeline</p>
+        <h1 className="text-lg font-semibold text-warm-900">Pipeline Settings</h1>
+        <p className="text-xs text-warm-500 mt-1">Configure document enrichment features for the ingestion pipeline</p>
       </div>
 
       {error && (
-        <div className="mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+        <div className="mb-4 px-4 py-2.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
           {error}
         </div>
       )}
@@ -187,31 +187,31 @@ function ControlPanel() {
           return (
             <div
               key={item.key}
-              className={`bg-[#0a0f0a] rounded-xl border transition-all duration-300 ${
+              className={`bg-white rounded-xl border transition-all duration-300 ${
                 enabled
-                  ? 'border-[#00ff41]/30 shadow-[0_0_15px_-5px_#00ff4130]'
-                  : 'border-[#0d2b0d]'
+                  ? 'border-ember/30'
+                  : 'border-warm-200'
               }`}
             >
               <div className="px-6 py-5 flex items-start justify-between gap-6">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">
                     <h3 className={`text-sm font-medium transition-colors ${
-                      enabled ? 'text-[#c8e6c8]' : 'text-[#5a8a5a]'
+                      enabled ? 'text-warm-900' : 'text-warm-600'
                     }`}>
                       {item.label}
                     </h3>
                     {justSaved && (
-                      <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded animate-pulse">
+                      <span className="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded animate-pulse">
                         saved
                       </span>
                     )}
                     {isSaving && (
-                      <div className="w-3 h-3 border border-[#00ff41]/40 border-t-[#00ff41] rounded-full animate-spin" />
+                      <div className="w-3 h-3 border border-ember/40 border-t-ember rounded-full animate-spin" />
                     )}
                   </div>
                   <p className={`text-xs mt-1.5 leading-relaxed transition-colors ${
-                    enabled ? 'text-[#3d6b3d]' : 'text-[#2a4a2a]'
+                    enabled ? 'text-warm-500' : 'text-warm-400'
                   }`}>
                     {item.description}
                   </p>
@@ -231,7 +231,7 @@ function ControlPanel() {
 
       {config.some(item => !isBoolean(item.value)) && (
         <div className="mt-6">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider mb-3">Configuration</h2>
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider mb-3">Configuration</h2>
           <div className="grid gap-4">
             {config.filter(item => !isBoolean(item.value)).map(item => (
               <TextConfigField
@@ -246,9 +246,9 @@ function ControlPanel() {
         </div>
       )}
 
-      <div className="mt-6 px-4 py-3 rounded-lg bg-[#00ff41]/[0.03] border border-[#0d2b0d]">
-        <p className="text-[11px] text-[#3d6b3d] leading-relaxed">
-          <span className="text-[#00ff41] font-medium">Note:</span> Changes take effect on the next ingestion run.
+      <div className="mt-6 px-4 py-3 rounded-lg bg-warm-bg border border-warm-200">
+        <p className="text-[11px] text-warm-500 leading-relaxed">
+          <span className="text-ember font-medium">Note:</span> Changes take effect on the next ingestion run.
           Documents already processed will not be re-enriched automatically.
         </p>
       </div>
