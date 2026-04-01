@@ -1,0 +1,50 @@
+# GPU Document Conversion Service
+# x86_64 only — CUDA requires x86_64
+# ~4-5GB image with CUDA runtime + docling + PyTorch
+#
+# Deployed to Azure Container Apps with T4 GPU workload profile.
+# Stateless: receives document bytes, returns DoclingDocument JSON.
+
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+
+# Prevent interactive prompts during apt install
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python 3.11 + system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.11 \
+    python3.11-venv \
+    python3-pip \
+    gcc \
+    libc6-dev \
+    python3.11-dev \
+    libpq-dev \
+    libxcb1 \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN ln -sf /usr/bin/python3.11 /usr/bin/python && \
+    ln -sf /usr/bin/python3.11 /usr/bin/python3
+
+WORKDIR /app
+
+# Install Python dependencies (CUDA-enabled PyTorch from default index)
+COPY requirements.gpu.txt .
+RUN pip install --no-cache-dir -r requirements.gpu.txt
+
+# Copy the conversion service
+COPY gpu_convert_service.py .
+
+# Non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+# Disable PyTorch Inductor JIT — the subprocess compiler crashes on ACA
+# (missing headers + limited resources). Eager mode still uses GPU.
+ENV TORCH_COMPILE_DISABLE=1
+EXPOSE 8080
+
+CMD ["uvicorn", "gpu_convert_service:app", "--host", "0.0.0.0", "--port", "8080"]

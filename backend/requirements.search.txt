@@ -1,0 +1,26 @@
+# RAG Search API Dependencies
+# All packages must be compatible with ARM64 (linux/arm64)
+
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# Database
+psycopg2-binary>=2.9.9
+pgvector>=0.2.5
+asyncpg>=0.29.0
+
+# Azure OpenAI
+openai>=1.12.0
+
+# Text processing
+tiktoken>=0.6.0
+
+# Utilities
+python-dotenv>=1.0.0
+tenacity>=8.2.0
+pydantic>=2.5.0
+
+# Logging
+structlog>=24.1.0
+python-multipart>=0.0.6
