@@ -370,7 +370,7 @@ export default function PdfViewer({ documentId }) {
     if (!selected) {
       return (
         <div className="h-full flex items-center justify-center">
-          <p className="text-sm text-[#3d6b3d]">Select an item to view details</p>
+          <p className="text-sm text-warm-500">Select an item to view details</p>
         </div>
       )
     }
@@ -385,26 +385,26 @@ export default function PdfViewer({ documentId }) {
         return (
           <div className="p-5 space-y-5">
             <div>
-              <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider mb-1">Section</p>
-              <h2 className="text-xl font-semibold text-[#c8e6c8]">{h.text}</h2>
+              <p className="text-xs font-medium text-warm-500 uppercase tracking-wider mb-1">Section</p>
+              <h2 className="text-xl font-semibold text-warm-900">{h.text}</h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+              <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
                 {sectionPages.length} pages
               </Badge>
-              <Badge variant="outline" className="text-[#00ff41] border-[#00ff41]/30 text-xs">
+              <Badge variant="outline" className="text-ember border-ember/30 text-xs">
                 {totalChunks} chunks
               </Badge>
-              <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+              <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                 Level {h.level}
               </Badge>
             </div>
             {h.subHeadings.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Sub-sections</p>
+                <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Sub-sections</p>
                 {h.subHeadings.map(sub => (
-                  <p key={sub.id} className="text-sm text-[#8ab88a] pl-3">
-                    {sub.text} <span className="text-[#2a4a2a]">p.{sub.pageNumber}</span>
+                  <p key={sub.id} className="text-sm text-warm-900 pl-3">
+                    {sub.text} <span className="text-warm-400">p.{sub.pageNumber}</span>
                   </p>
                 ))}
               </div>
@@ -421,23 +421,23 @@ export default function PdfViewer({ documentId }) {
         return (
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#c8e6c8]">Page {page.page_number}</h2>
+              <h2 className="text-lg font-semibold text-warm-900">Page {page.page_number}</h2>
               <div className="flex gap-2">
                 {page.width && page.height && (
-                  <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+                  <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                     {Math.round(page.width)} × {Math.round(page.height)}
                   </Badge>
                 )}
                 {els && (
-                  <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+                  <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
                     {els.filter(e => e.content_layer === 'body').length} body elements
                   </Badge>
                 )}
               </div>
             </div>
-            {isLoading && <p className="text-sm text-[#3d6b3d]">Loading page content…</p>}
+            {isLoading && <p className="text-sm text-warm-500">Loading page content…</p>}
             {els && (
-              <div className="p-5 bg-[#060d06] rounded-xl border border-[#0d2b0d]">
+              <div className="p-5 bg-warm-100 rounded-xl border border-warm-200">
                 {els
                   .filter(e => e.content_layer === 'body')
                   .sort((a, b) => a.reading_order - b.reading_order)
@@ -445,7 +445,7 @@ export default function PdfViewer({ documentId }) {
                     <ElementRenderer key={el.element_id || i} element={el} />
                   ))}
                 {els.filter(e => e.content_layer === 'body').length === 0 && (
-                  <p className="text-sm text-[#3d6b3d]">No body elements on this page</p>
+                  <p className="text-sm text-warm-500">No body elements on this page</p>
                 )}
               </div>
             )}
@@ -460,21 +460,21 @@ export default function PdfViewer({ documentId }) {
         return (
           <div className="p-5 space-y-4">
             <div>
-              <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider mb-1">Element</p>
+              <p className="text-xs font-medium text-warm-500 uppercase tracking-wider mb-1">Element</p>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" className="text-[#00ff41] border-[#00ff41]/30 text-xs">
+                <Badge variant="outline" className="text-ember border-ember/30 text-xs">
                   {el.element_type}
                 </Badge>
                 {selected.pageNumber && (
-                  <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+                  <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                     page {selected.pageNumber}
                   </Badge>
                 )}
-                <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+                <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                   order {el.reading_order}
                 </Badge>
                 {el.heading_level && (
-                  <Badge variant="outline" className="text-[#00e5ff] border-[#00e5ff]/30 text-xs">
+                  <Badge variant="outline" className="text-warm-600 border-warm-600/30 text-xs">
                     H{el.heading_level}
                   </Badge>
                 )}
@@ -488,11 +488,11 @@ export default function PdfViewer({ documentId }) {
 
             {text && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Content</p>
+                <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Content</p>
                 {el.element_type === 'code' || el.element_type === 'formula' ? (
                   <ElementRenderer element={el} />
                 ) : (
-                  <div className="p-4 bg-[#060d06] rounded-lg border border-[#0d2b0d] text-sm text-[#a8d8a8] whitespace-pre-wrap leading-relaxed">
+                  <div className="p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed">
                     {text}
                   </div>
                 )}
@@ -501,8 +501,8 @@ export default function PdfViewer({ documentId }) {
 
             {el.element_type === 'picture' && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Image</p>
-                <div className="py-8 border border-dashed border-[#1a3a1a] rounded-lg text-sm text-[#3d6b3d] text-center bg-[#0a120a]/30">
+                <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Image</p>
+                <div className="py-8 border border-dashed border-warm-200 rounded-lg text-sm text-warm-500 text-center bg-warm-100/30">
                   ▣ No direct image preview — view via chunk detail
                 </div>
               </div>
@@ -510,8 +510,8 @@ export default function PdfViewer({ documentId }) {
 
             {el.bbox_left != null && (
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Position</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-[#5a8a5a]">
+                <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Position</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-warm-600">
                   <span>Left: {el.bbox_left?.toFixed(1)}</span>
                   <span>Top: {el.bbox_top?.toFixed(1)}</span>
                   <span>Right: {el.bbox_right?.toFixed(1)}</span>
@@ -543,7 +543,7 @@ export default function PdfViewer({ documentId }) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-[#3d6b3d]">Loading document…</p>
+        <p className="text-warm-500">Loading document…</p>
       </div>
     )
   }
@@ -564,8 +564,8 @@ export default function PdfViewer({ documentId }) {
           onClick={() => setViewMode(mode)}
           className={`px-2.5 py-0.5 text-[10px] uppercase tracking-wider rounded transition-colors ${
             viewMode === mode
-              ? 'bg-[#00ff41]/15 text-[#00ff41]'
-              : 'text-[#3d6b3d] hover:text-[#5a8a5a]'
+              ? 'bg-ember/[0.08] text-ember'
+              : 'text-warm-500 hover:text-warm-600'
           }`}
         >
           {mode}
@@ -577,8 +577,8 @@ export default function PdfViewer({ documentId }) {
   if (viewMode === 'graph') {
     return (
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d] flex items-center justify-between shrink-0">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">Graph</h2>
+        <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between shrink-0">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Graph</h2>
           {viewToggle}
         </div>
         <div className="flex-1 relative min-h-0">
@@ -610,9 +610,9 @@ export default function PdfViewer({ documentId }) {
 
   return (
     <div className="flex-1 grid grid-cols-[320px_1fr] min-h-0">
-      <aside className="border-r border-[#0d2b0d] flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d] flex items-center justify-between">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">Browser</h2>
+      <aside className="border-r border-warm-200 flex flex-col min-h-0">
+        <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Browser</h2>
           {viewToggle}
         </div>
         <ScrollArea className="flex-1">
@@ -630,15 +630,15 @@ export default function PdfViewer({ documentId }) {
                 .map(page => renderPage(page, 0))
             )}
             {pages.length === 0 && (
-              <p className="text-xs text-[#3d6b3d] px-4 py-2">No document content found</p>
+              <p className="text-xs text-warm-500 px-4 py-2">No document content found</p>
             )}
           </div>
         </ScrollArea>
       </aside>
 
       <main className="flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d]">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">
+        <div className="px-4 py-2.5 border-b border-warm-200">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {detailTitle}
           </h2>
         </div>

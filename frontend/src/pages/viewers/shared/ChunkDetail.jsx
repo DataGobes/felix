@@ -4,7 +4,7 @@ import TableRenderer from './TableRenderer'
 
 export default function ChunkDetail({ chunk, tables = [], images = [], loading }) {
   if (loading) {
-    return <div className="p-5"><p className="text-sm text-[#3d6b3d]">Loading chunk…</p></div>
+    return <div className="p-5"><p className="text-sm text-warm-500">Loading chunk…</p></div>
   }
 
   if (!chunk) return null
@@ -12,21 +12,21 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
   return (
     <div className="p-5 space-y-4">
       <div>
-        <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider mb-1">Chunk</p>
+        <p className="text-xs font-medium text-warm-500 uppercase tracking-wider mb-1">Chunk</p>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="text-[#00ff41] border-[#00ff41]/30 text-xs">
+          <Badge variant="outline" className="text-ember border-ember/30 text-xs">
             chunk {chunk.chunk_index}
           </Badge>
-          <Badge variant="outline" className="text-[#00e5ff] border-[#00e5ff]/30 text-xs">
+          <Badge variant="outline" className="text-warm-600 border-warm-600/30 text-xs">
             {chunk.token_count} tokens
           </Badge>
           {chunk.char_count && (
-            <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+            <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
               {chunk.char_count} chars
             </Badge>
           )}
           {chunk.page_number && (
-            <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+            <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
               page {chunk.page_number}
             </Badge>
           )}
@@ -35,21 +35,21 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
 
       {chunk.headings?.length > 0 && (
         <div className="space-y-1">
-          <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Headings</p>
-          <p className="text-sm text-[#00ff41]">{chunk.headings.join(' › ')}</p>
+          <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Headings</p>
+          <p className="text-sm text-ember">{chunk.headings.join(' › ')}</p>
         </div>
       )}
 
       <div className="space-y-1">
-        <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Content</p>
-        <div className="p-4 bg-[#060d06] rounded-lg border border-[#0d2b0d] text-sm text-[#a8d8a8] whitespace-pre-wrap leading-relaxed">
+        <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Content</p>
+        <div className="p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed">
           {chunk.content}
         </div>
       </div>
 
       {images.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">
+          <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">
             Images ({images.length})
           </p>
           {images.map(img => (
@@ -57,15 +57,15 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
               <img
                 src={getImageUrl(img.image_id)}
                 alt={img.caption || `Image ${img.image_id}`}
-                className="max-w-full rounded-lg border border-[#1a3a1a]"
+                className="max-w-full rounded-lg border border-warm-200"
               />
-              {img.caption && <p className="text-xs text-[#5a8a5a] italic">{img.caption}</p>}
+              {img.caption && <p className="text-xs text-warm-600 italic">{img.caption}</p>}
               <div className="flex gap-2">
                 <Badge variant="outline" className="text-[#b388ff] border-[#b388ff]/30 text-xs">
                   {img.width} × {img.height}
                 </Badge>
                 {img.file_size && (
-                  <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+                  <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                     {(img.file_size / 1024).toFixed(1)} KB
                   </Badge>
                 )}
@@ -77,7 +77,7 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
 
       {tables.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">
+          <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">
             Tables ({tables.length})
           </p>
           {tables.map((table, i) => (

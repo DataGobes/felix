@@ -31,7 +31,7 @@ function getFormatFromDoc(doc) {
   if (ext && FORMAT_CONFIG[ext]) return FORMAT_CONFIG[ext]
   return {
     label: ext ? ext.toUpperCase() : 'DOC',
-    color: 'text-[#8ab88a] border-[#2a4a2a]',
+    color: 'text-warm-900 border-warm-400',
     Viewer: TextViewer,
   }
 }
@@ -70,21 +70,21 @@ function DocumentViewer() {
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#050505] text-[#c8e6c8] flex items-center justify-center">
-        <p className="text-[#3d6b3d]">Loading document…</p>
+      <div className="h-screen bg-warm-bg text-warm-900 flex items-center justify-center">
+        <p className="text-warm-500">Loading document…</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="h-screen bg-[#050505] text-[#c8e6c8] flex flex-col items-center justify-center gap-4">
+      <div className="h-screen bg-warm-bg text-warm-900 flex flex-col items-center justify-center gap-4">
         <p className="text-red-400">Failed to load document: {error}</p>
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
           size="sm"
-          className="text-[#5a8a5a] hover:text-[#c8e6c8] hover:bg-[#00ff41]/10"
+          className="text-warm-600 hover:text-warm-900 hover:bg-ember/[0.08]"
         >
           ← Back to Dashboard
         </Button>
@@ -97,13 +97,13 @@ function DocumentViewer() {
   const Viewer = format.Viewer
 
   return (
-    <div className="h-screen bg-[#050505] text-[#c8e6c8] flex flex-col overflow-hidden">
-      <header className="border-b border-[#0d2b0d] px-6 py-3 flex items-center gap-4 shrink-0">
+    <div className="h-screen bg-warm-bg text-warm-900 flex flex-col overflow-hidden">
+      <header className="border-b border-warm-200 px-6 py-3 flex items-center gap-4 shrink-0">
         <Button
           onClick={() => navigate('/')}
           variant="ghost"
           size="sm"
-          className="text-[#5a8a5a] hover:text-[#c8e6c8] hover:bg-[#00ff41]/10"
+          className="text-warm-600 hover:text-warm-900 hover:bg-ember/[0.08]"
         >
           ← Back
         </Button>
@@ -113,7 +113,7 @@ function DocumentViewer() {
             {format.label}
           </Badge>
           {doc?.chunk_count != null && (
-            <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+            <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
               {doc.chunk_count} chunks
             </Badge>
           )}

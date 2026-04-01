@@ -120,7 +120,7 @@ export default function PptxViewer({ documentId }) {
     if (!selected) {
       return (
         <div className="h-full flex items-center justify-center">
-          <p className="text-sm text-[#3d6b3d]">Select a slide to view its content</p>
+          <p className="text-sm text-warm-500">Select a slide to view its content</p>
         </div>
       )
     }
@@ -145,10 +145,10 @@ export default function PptxViewer({ documentId }) {
     return (
       <div className="p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#c8e6c8]">Slide {page.page_number}</h2>
+          <h2 className="text-lg font-semibold text-warm-900">Slide {page.page_number}</h2>
           <div className="flex gap-2">
             {els && (
-              <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+              <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
                 {els.filter(e => e.content_layer === 'body').length} elements
               </Badge>
             )}
@@ -160,10 +160,10 @@ export default function PptxViewer({ documentId }) {
           </div>
         </div>
 
-        {isLoading && <p className="text-sm text-[#3d6b3d]">Loading slide content…</p>}
+        {isLoading && <p className="text-sm text-warm-500">Loading slide content…</p>}
 
         {els && (
-          <div className="p-5 bg-[#060d06] rounded-xl border border-[#0d2b0d]">
+          <div className="p-5 bg-warm-100 rounded-xl border border-warm-200">
             {els
               .filter(e => e.content_layer === 'body')
               .sort((a, b) => a.reading_order - b.reading_order)
@@ -178,7 +178,7 @@ export default function PptxViewer({ documentId }) {
                 return <ElementRenderer key={el.element_id || i} element={el} imageUrl={imageUrl} />
               })}
             {els.filter(e => e.content_layer === 'body').length === 0 && (
-              <p className="text-sm text-[#3d6b3d]">No body elements on this slide</p>
+              <p className="text-sm text-warm-500">No body elements on this slide</p>
             )}
           </div>
         )}
@@ -186,7 +186,7 @@ export default function PptxViewer({ documentId }) {
         {/* Show all images for this slide */}
         {slideImages.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">
+            <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">
               Slide Images ({slideImages.length})
             </p>
             {slideImages.map(img => (
@@ -194,15 +194,15 @@ export default function PptxViewer({ documentId }) {
                 <img
                   src={getImageUrl(img.image_id)}
                   alt={img.caption || `Image ${img.image_id}`}
-                  className="max-w-full rounded-lg border border-[#1a3a1a]"
+                  className="max-w-full rounded-lg border border-warm-200"
                 />
-                {img.caption && <p className="text-xs text-[#5a8a5a] italic">{img.caption}</p>}
+                {img.caption && <p className="text-xs text-warm-600 italic">{img.caption}</p>}
                 <div className="flex gap-2">
                   <Badge variant="outline" className="text-[#b388ff] border-[#b388ff]/30 text-xs">
                     {img.width} × {img.height}
                   </Badge>
                   {img.file_size && (
-                    <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+                    <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                       {(img.file_size / 1024).toFixed(1)} KB
                     </Badge>
                   )}
@@ -218,16 +218,16 @@ export default function PptxViewer({ documentId }) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-[#3d6b3d]">Loading presentation…</p>
+        <p className="text-warm-500">Loading presentation…</p>
       </div>
     )
   }
 
   return (
     <div className="flex-1 grid grid-cols-[320px_1fr] min-h-0">
-      <aside className="border-r border-[#0d2b0d] flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d]">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">Slides</h2>
+      <aside className="border-r border-warm-200 flex flex-col min-h-0">
+        <div className="px-4 py-2.5 border-b border-warm-200">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Slides</h2>
         </div>
         <ScrollArea className="flex-1">
           <div className="py-1">
@@ -271,15 +271,15 @@ export default function PptxViewer({ documentId }) {
             )}
 
             {pages.length === 0 && (
-              <p className="text-xs text-[#3d6b3d] px-4 py-2">No slides found</p>
+              <p className="text-xs text-warm-500 px-4 py-2">No slides found</p>
             )}
           </div>
         </ScrollArea>
       </aside>
 
       <main className="flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d]">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">
+        <div className="px-4 py-2.5 border-b border-warm-200">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {selected
               ? selected.type === 'slide' ? 'Slide View'
               : selected.type === 'chunk' ? 'Chunk Detail'

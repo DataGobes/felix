@@ -107,7 +107,7 @@ export default function XlsxViewer({ documentId }) {
     if (!selected) {
       return (
         <div className="h-full flex items-center justify-center">
-          <p className="text-sm text-[#3d6b3d]">Select a sheet or table to view</p>
+          <p className="text-sm text-warm-500">Select a sheet or table to view</p>
         </div>
       )
     }
@@ -128,16 +128,16 @@ export default function XlsxViewer({ documentId }) {
       return (
         <div className="p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#c8e6c8]">
+            <h2 className="text-lg font-semibold text-warm-900">
               {table.caption || `Table ${table.table_id}`}
             </h2>
             <div className="flex gap-2">
               {table.num_rows != null && table.num_cols != null && (
-                <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+                <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
                   {table.num_rows} rows × {table.num_cols} cols
                 </Badge>
               )}
-              <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-xs">
+              <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
                 Sheet {table.page_number}
               </Badge>
             </div>
@@ -154,14 +154,14 @@ export default function XlsxViewer({ documentId }) {
     return (
       <div className="p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#c8e6c8]">Sheet {page.page_number}</h2>
+          <h2 className="text-lg font-semibold text-warm-900">Sheet {page.page_number}</h2>
           <div className="flex gap-2">
             {page.element_count && (
-              <Badge variant="outline" className="text-[#5a8a5a] border-[#1a3a1a] text-xs">
+              <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
                 {page.element_count} elements
               </Badge>
             )}
-            <Badge variant="outline" className="text-[#00e5ff] border-[#00e5ff]/30 text-xs">
+            <Badge variant="outline" className="text-warm-600 border-warm-600/30 text-xs">
               {sheetTables.length} tables
             </Badge>
           </div>
@@ -172,7 +172,7 @@ export default function XlsxViewer({ documentId }) {
             {sheetTables.map(table => (
               <div key={table.table_id}>
                 {table.caption && (
-                  <p className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider mb-2">
+                  <p className="text-xs font-medium text-warm-500 uppercase tracking-wider mb-2">
                     {table.caption}
                   </p>
                 )}
@@ -181,7 +181,7 @@ export default function XlsxViewer({ documentId }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#3d6b3d]">No tables found on this sheet</p>
+          <p className="text-sm text-warm-500">No tables found on this sheet</p>
         )}
       </div>
     )
@@ -190,16 +190,16 @@ export default function XlsxViewer({ documentId }) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-[#3d6b3d]">Loading spreadsheet…</p>
+        <p className="text-warm-500">Loading spreadsheet…</p>
       </div>
     )
   }
 
   return (
     <div className="flex-1 grid grid-cols-[320px_1fr] min-h-0">
-      <aside className="border-r border-[#0d2b0d] flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d]">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">Sheets</h2>
+      <aside className="border-r border-warm-200 flex flex-col min-h-0">
+        <div className="px-4 py-2.5 border-b border-warm-200">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Sheets</h2>
         </div>
         <ScrollArea className="flex-1">
           <div className="py-1">
@@ -260,15 +260,15 @@ export default function XlsxViewer({ documentId }) {
             )}
 
             {pages.length === 0 && (
-              <p className="text-xs text-[#3d6b3d] px-4 py-2">No sheets found</p>
+              <p className="text-xs text-warm-500 px-4 py-2">No sheets found</p>
             )}
           </div>
         </ScrollArea>
       </aside>
 
       <main className="flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d]">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">
+        <div className="px-4 py-2.5 border-b border-warm-200">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {selected
               ? selected.type === 'sheet' ? 'Sheet Overview'
               : selected.type === 'table' ? 'Table View'

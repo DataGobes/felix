@@ -50,20 +50,20 @@ export default function ElementRenderer({ element, imageUrl }) {
   switch (element.element_type) {
     case 'section_header':
       if (element.heading_level === 1)
-        return <h2 className="text-xl font-bold text-[#c8e6c8] mt-6 mb-3 first:mt-0">{text}</h2>
+        return <h2 className="text-xl font-bold text-warm-900 mt-6 mb-3 first:mt-0">{text}</h2>
       if (element.heading_level === 2)
-        return <h3 className="text-lg font-semibold text-[#c8e6c8] mt-5 mb-2">{text}</h3>
-      return <h4 className="text-base font-medium text-[#a8d8a8] mt-4 mb-1.5">{text}</h4>
+        return <h3 className="text-lg font-semibold text-warm-900 mt-5 mb-2">{text}</h3>
+      return <h4 className="text-base font-medium text-warm-900 mt-4 mb-1.5">{text}</h4>
 
     case 'text':
     case 'paragraph':
-      return <p className="text-sm text-[#8ab88a] leading-relaxed mb-3">{text}</p>
+      return <p className="text-sm text-warm-900 leading-relaxed mb-3">{text}</p>
 
     case 'list_item':
       return (
         <div className="flex gap-2 mb-1.5 ml-4">
-          <span className="text-[#3d6b3d] shrink-0 mt-0.5">•</span>
-          <p className="text-sm text-[#8ab88a] leading-relaxed">{text}</p>
+          <span className="text-warm-500 shrink-0 mt-0.5">•</span>
+          <p className="text-sm text-warm-900 leading-relaxed">{text}</p>
         </div>
       )
 
@@ -85,13 +85,13 @@ export default function ElementRenderer({ element, imageUrl }) {
       }
       // highlight.js output is sanitized — it escapes input and only produces <span> tags
       return (
-        <div className="my-3 rounded-lg overflow-x-auto border border-[#1a3a1a]">
+        <div className="my-3 rounded-lg overflow-x-auto border border-warm-200">
           {lang && (
-            <div className="px-3 py-1 bg-[#0a120a] border-b border-[#1a3a1a] text-[10px] text-[#3d6b3d] font-mono uppercase tracking-wider">
+            <div className="px-3 py-1 bg-warm-100 border-b border-warm-200 text-[10px] text-warm-500 font-mono uppercase tracking-wider">
               {lang}
             </div>
           )}
-          <pre className="p-3 bg-[#0a120a] text-xs font-mono whitespace-pre leading-relaxed">
+          <pre className="p-3 bg-warm-100 text-xs font-mono whitespace-pre leading-relaxed">
             <code dangerouslySetInnerHTML={{ __html: highlighted }} />
           </pre>
         </div>
@@ -108,11 +108,11 @@ export default function ElementRenderer({ element, imageUrl }) {
       }
       return html ? (
         <div
-          className="my-4 p-4 bg-[#060d06]/50 rounded-lg border border-[#1a3a1a] overflow-x-auto text-center"
+          className="my-4 p-4 bg-warm-100/50 rounded-lg border border-warm-200 overflow-x-auto text-center"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <div className="my-3 p-3 bg-[#0a120a] rounded-lg overflow-x-auto border border-[#1a3a1a]">
+        <div className="my-3 p-3 bg-warm-100 rounded-lg overflow-x-auto border border-warm-200">
           <pre className="text-xs text-amber-300 font-mono whitespace-pre leading-relaxed">{text}</pre>
         </div>
       )
@@ -125,25 +125,25 @@ export default function ElementRenderer({ element, imageUrl }) {
             <img
               src={imageUrl}
               alt={element.caption || 'Image'}
-              className="max-w-full rounded-lg border border-[#1a3a1a]"
+              className="max-w-full rounded-lg border border-warm-200"
             />
-            {element.caption && <p className="text-xs text-[#5a8a5a] italic mt-1">{element.caption}</p>}
+            {element.caption && <p className="text-xs text-warm-600 italic mt-1">{element.caption}</p>}
           </div>
         )
       }
       return (
-        <div className="my-4 py-8 border border-dashed border-[#1a3a1a] rounded-lg text-sm text-[#3d6b3d] text-center bg-[#0a120a]/30">
+        <div className="my-4 py-8 border border-dashed border-warm-200 rounded-lg text-sm text-warm-500 text-center bg-warm-100/30">
           ▣ Image
         </div>
       )
 
     case 'caption':
-      return <p className="text-xs text-[#5a8a5a] italic mb-3 -mt-2">{text}</p>
+      return <p className="text-xs text-warm-600 italic mb-3 -mt-2">{text}</p>
 
     case 'footnote':
       return (
-        <p className="text-xs text-[#3d6b3d] border-t border-[#0d2b0d] pt-2 mt-4 mb-2">
-          <span className="text-[#2a4a2a] mr-1">†</span>{text}
+        <p className="text-xs text-warm-500 border-t border-warm-200 pt-2 mt-4 mb-2">
+          <span className="text-warm-400 mr-1">†</span>{text}
         </p>
       )
 
@@ -153,13 +153,13 @@ export default function ElementRenderer({ element, imageUrl }) {
 
     case 'group':
       return (
-        <div className="my-2 pl-3 border-l-2 border-[#1a3a1a]">
-          {text && <p className="text-sm text-[#8ab88a] leading-relaxed mb-2">{text}</p>}
+        <div className="my-2 pl-3 border-l-2 border-warm-200">
+          {text && <p className="text-sm text-warm-900 leading-relaxed mb-2">{text}</p>}
         </div>
       )
 
     default:
       if (!text) return null
-      return <p className="text-sm text-[#5a8a5a] mb-2">{text}</p>
+      return <p className="text-sm text-warm-600 mb-2">{text}</p>
   }
 }

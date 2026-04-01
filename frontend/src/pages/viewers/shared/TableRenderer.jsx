@@ -23,15 +23,15 @@ export default function TableRenderer({ table }) {
   const parsed = parseMarkdownTable(table.content_markdown)
 
   return (
-    <div className="rounded-lg overflow-hidden border border-[#1a3a1a]">
+    <div className="rounded-lg overflow-hidden border border-warm-200">
       {(table.caption || table.num_rows != null) && (
-        <div className="px-3 py-1.5 bg-[#0a120a] border-b border-[#1a3a1a] flex items-center gap-2">
+        <div className="px-3 py-1.5 bg-warm-100 border-b border-warm-200 flex items-center gap-2">
           {table.caption && (
-            <span className="text-xs text-[#5a8a5a] italic truncate">{table.caption}</span>
+            <span className="text-xs text-warm-600 italic truncate">{table.caption}</span>
           )}
           <span className="ml-auto flex gap-2 shrink-0">
             {table.num_rows != null && table.num_cols != null && (
-              <Badge variant="outline" className="text-[#3d6b3d] border-[#1a3a1a] text-[10px]">
+              <Badge variant="outline" className="text-warm-500 border-warm-200 text-[10px]">
                 {table.num_rows} × {table.num_cols}
               </Badge>
             )}
@@ -43,9 +43,9 @@ export default function TableRenderer({ table }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-[#0a120a]">
+              <tr className="bg-warm-100">
                 {parsed.headers.map((h, i) => (
-                  <th key={i} className="px-3 py-2 text-left text-[#5a8a5a] font-medium border-b border-[#1a3a1a] whitespace-nowrap">
+                  <th key={i} className="px-3 py-2 text-left text-warm-600 font-medium border-b border-warm-200 whitespace-nowrap">
                     {h}
                   </th>
                 ))}
@@ -53,9 +53,9 @@ export default function TableRenderer({ table }) {
             </thead>
             <tbody>
               {parsed.rows.map((row, ri) => (
-                <tr key={ri} className={ri % 2 === 0 ? 'bg-[#060d06]' : 'bg-[#0a120a]/50'}>
+                <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-warm-100/50'}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-3 py-1.5 text-[#8ab88a] border-b border-[#0d2b0d] whitespace-nowrap">
+                    <td key={ci} className="px-3 py-1.5 text-warm-900 border-b border-warm-200 whitespace-nowrap">
                       {cell}
                     </td>
                   ))}
@@ -65,7 +65,7 @@ export default function TableRenderer({ table }) {
           </table>
         </div>
       ) : (
-        <pre className="p-3 bg-[#0a120a] text-xs text-[#8ab88a] font-mono whitespace-pre leading-relaxed overflow-x-auto">
+        <pre className="p-3 bg-warm-100 text-xs text-warm-900 font-mono whitespace-pre leading-relaxed overflow-x-auto">
           {table.content_markdown}
         </pre>
       )}

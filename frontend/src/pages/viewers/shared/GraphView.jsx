@@ -25,11 +25,11 @@ const MAX_ELEMENTS_PER_PAGE = 8
 const LARGE_DOC_THRESHOLD = 50 // pages
 
 const NODE_CONFIG = {
-  document: { size: 28, stroke: '#00ff41', sw: 2, fill: '#0a1a0a' },
-  heading:  { size: 18, stroke: '#00ff41', sw: 1.5, fill: '#0a150a' },
-  page:     { size: 14, stroke: '#5a8a5a', sw: 1, fill: '#0a120a' },
-  element:  { size: 7,  stroke: '#3d6b3d', sw: 1, fill: '#080e08' },
-  chunk:    { size: 9,  stroke: '#00e5ff', sw: 1, fill: '#0a0f14' },
+  document: { size: 28, stroke: '#c2600a', sw: 2, fill: '#fdf6ee' },
+  heading:  { size: 18, stroke: '#c2600a', sw: 1.5, fill: '#fdf6ee' },
+  page:     { size: 14, stroke: '#8c6a4a', sw: 1, fill: '#faf0e4' },
+  element:  { size: 7,  stroke: '#b89070', sw: 1, fill: '#faf0e4' },
+  chunk:    { size: 9,  stroke: '#8c6a4a', sw: 1, fill: '#faf0e4' },
 }
 
 function HexagonShape({ r, stroke, sw, fill }) {
@@ -53,17 +53,17 @@ function NodeShape({ type, data }) {
         <text textAnchor="middle" dy="5" fill={stroke} fontSize="14" fontWeight="bold">F</text></g>)
     case 'heading':
       return (<g><circle r={r} stroke={stroke} strokeWidth={sw} fill={fill} />
-        <text textAnchor="middle" dy="4" fill="#8ab88a" fontSize="11">§</text></g>)
+        <text textAnchor="middle" dy="4" fill="#8c6a4a" fontSize="11">§</text></g>)
     case 'page':
       return (<g><rect x={-r} y={-r*1.3} width={r*2} height={r*2.6} rx={3}
         stroke={stroke} strokeWidth={sw} fill={fill} />
-        <text textAnchor="middle" dy="3" fill="#5a8a5a" fontSize="9">{data?.page_number ?? ''}</text></g>)
+        <text textAnchor="middle" dy="3" fill="#8c6a4a" fontSize="9">{data?.page_number ?? ''}</text></g>)
     case 'chunk':
       return (<g><DiamondShape r={r} stroke={stroke} sw={sw} fill={fill} />
         <text textAnchor="middle" dy="3" fill={stroke} fontSize="7">◆</text></g>)
     default:
       return (<g><DiamondShape r={r} stroke={stroke} sw={sw} fill={fill} />
-        <text textAnchor="middle" dy="3" fill="#5a8a5a" fontSize="6">{elementIcon(data?.element_type)}</text></g>)
+        <text textAnchor="middle" dy="3" fill="#8c6a4a" fontSize="6">{elementIcon(data?.element_type)}</text></g>)
   }
 }
 
@@ -73,23 +73,23 @@ function ExplorerRow({ label, icon, depth, isExpanded, isActive, childCount, onT
     <button
       onClick={onSelect}
       className={`w-full text-left flex items-center gap-1 py-0.5 px-1.5 text-[10px] transition-colors ${
-        isActive ? 'text-[#00ff41]' : 'text-[#5a8a5a] hover:text-[#8ab88a]'
+        isActive ? 'text-ember' : 'text-warm-600 hover:text-warm-900'
       }`}
       style={{ paddingLeft: `${depth * 10 + 6}px` }}
     >
       {onToggle ? (
         <span
-          className="w-3 text-center shrink-0 cursor-pointer hover:text-[#00ff41]"
+          className="w-3 text-center shrink-0 cursor-pointer hover:text-ember"
           onClick={(e) => { e.stopPropagation(); onToggle() }}
         >
           {isExpanded ? '▾' : '▸'}
         </span>
       ) : (
-        <span className="w-3 text-center shrink-0 text-[#2a4a2a]">{icon}</span>
+        <span className="w-3 text-center shrink-0 text-warm-400">{icon}</span>
       )}
       <span className="truncate flex-1">{label}</span>
       {childCount > 0 && (
-        <span className="text-[#2a4a2a] text-[9px] shrink-0 ml-auto">{childCount}</span>
+        <span className="text-warm-400 text-[9px] shrink-0 ml-auto">{childCount}</span>
       )}
     </button>
   )
@@ -469,9 +469,9 @@ export default function GraphView({
   function linkStroke(source) {
     const sNode = nodes.find(n => n.id === source)
     const depth = sNode?.depth ?? 0
-    if (depth <= 0) return '#1e4a1e'
-    if (depth <= 1) return '#163816'
-    return '#122a12'
+    if (depth <= 0) return '#d4b89a'
+    if (depth <= 1) return '#e0c9b0'
+    return '#e8d8c4'
   }
 
   /* ── Explorer sidebar: render heading tree ── */
@@ -549,9 +549,9 @@ export default function GraphView({
       style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
     >
       {/* ── Explorer sidebar ── */}
-      <div className="absolute top-0 left-0 bottom-0 w-[180px] z-10 bg-[#060d06]/90 backdrop-blur-sm border-r border-[#0d2b0d] flex flex-col">
-        <div className="px-2 py-1.5 border-b border-[#0d2b0d]">
-          <p className="text-[9px] font-medium text-[#3d6b3d] uppercase tracking-wider">Explorer</p>
+      <div className="absolute top-0 left-0 bottom-0 w-[180px] z-10 bg-warm-bg/90 backdrop-blur-sm border-r border-warm-200 flex flex-col">
+        <div className="px-2 py-1.5 border-b border-warm-200">
+          <p className="text-[9px] font-medium text-warm-500 uppercase tracking-wider">Explorer</p>
         </div>
         <ScrollArea className="flex-1">
           <div className="py-0.5">
@@ -583,11 +583,11 @@ export default function GraphView({
       {!graphActive && (
         <div className="absolute inset-0 left-[180px] flex items-center justify-center z-5">
           <div className="text-center space-y-3 max-w-[280px]">
-            <div className="text-[#1e4a1e] text-4xl">§</div>
-            <p className="text-sm text-[#5a8a5a]">
+            <div className="text-warm-400 text-4xl">§</div>
+            <p className="text-sm text-warm-600">
               Large document ({pages.length} pages)
             </p>
-            <p className="text-xs text-[#3d6b3d] leading-relaxed">
+            <p className="text-xs text-warm-500 leading-relaxed">
               Select a chapter from the explorer to start exploring the graph.
             </p>
           </div>
@@ -599,12 +599,12 @@ export default function GraphView({
         <div className="absolute top-2 left-[192px] z-10 flex items-center gap-1 text-[10px] select-none">
           {breadcrumb.map((crumb, i) => (
             <span key={crumb.id} className="flex items-center gap-1">
-              {i > 0 && <span className="text-[#2a4a2a]">›</span>}
+              {i > 0 && <span className="text-warm-400">›</span>}
               <button
                 className={`px-1.5 py-0.5 rounded transition-colors ${
                   i === breadcrumb.length - 1
-                    ? 'text-[#00ff41] bg-[#00ff41]/10'
-                    : 'text-[#5a8a5a] hover:text-[#8ab88a]'
+                    ? 'text-ember bg-ember/[0.08]'
+                    : 'text-warm-600 hover:text-warm-900'
                 }`}
                 onClick={() => {
                   // Collapse everything after this crumb
@@ -697,21 +697,21 @@ export default function GraphView({
                 >
                   {isSelected && (
                     <circle r={cfg.size + 6} fill="none"
-                      stroke={node.type === 'chunk' ? '#00e5ff' : '#00ff41'}
+                      stroke='#c2600a'
                       strokeWidth={1.5} opacity={0.5}
                       style={{ animation: 'graph-node-pulse 1.5s ease-in-out infinite' }}
                     />
                   )}
                   {isHovered && !isSelected && (
-                    <circle r={cfg.size + 4} fill="none" stroke="#00ff41" strokeWidth={0.8} opacity={0.3} />
+                    <circle r={cfg.size + 4} fill="none" stroke="#c2600a" strokeWidth={0.8} opacity={0.3} />
                   )}
                   <NodeShape type={node.type} data={node.data} />
                   {canExpand && (
                     <g transform={`translate(${cfg.size + 3}, ${-cfg.size + 1})`}
                       onClick={(e) => { e.stopPropagation(); toggleExpand(node.id, node) }}
                     >
-                      <circle r={7} fill="#0a0f0a" stroke="#3d6b3d" strokeWidth={0.8} />
-                      <text textAnchor="middle" dy="3.5" fill="#00ff41" fontSize="10" fontWeight="bold">
+                      <circle r={7} fill="#faf0e4" stroke="#b89070" strokeWidth={0.8} />
+                      <text textAnchor="middle" dy="3.5" fill="#c2600a" fontSize="10" fontWeight="bold">
                         {node.expanded ? '−' : '+'}
                       </text>
                     </g>
@@ -733,7 +733,7 @@ export default function GraphView({
             return (
               <text key={`lbl-${node.id}`}
                 x={pos.x} y={pos.y + yOff} textAnchor="middle"
-                fill={node.id === hoveredId || selected?.id === node.id ? '#c8e6c8' : '#5a8a5a'}
+                fill={node.id === hoveredId || selected?.id === node.id ? '#3d2010' : '#8c6a4a'}
                 fontSize={node.type === 'document' ? 11 : 9}
                 fontFamily="'Share Tech Mono', monospace"
                 style={{ pointerEvents: 'none' }}
@@ -756,10 +756,10 @@ export default function GraphView({
               <g>
                 <rect x={pos.x - labelW / 2} y={pos.y + yOff - 10}
                   width={labelW} height={16} rx={3}
-                  fill="#0a0f0a" fillOpacity={0.9} stroke="#1a3a1a" strokeWidth={0.5}
+                  fill="#fdf6ee" fillOpacity={0.9} stroke="#d4b89a" strokeWidth={0.5}
                 />
                 <text x={pos.x} y={pos.y + yOff + 1} textAnchor="middle"
-                  fill="#c8e6c8" fontSize={9} fontFamily="'Share Tech Mono', monospace"
+                  fill="#3d2010" fontSize={9} fontFamily="'Share Tech Mono', monospace"
                   style={{ pointerEvents: 'none' }}
                 >{label}</text>
               </g>
@@ -769,13 +769,13 @@ export default function GraphView({
       </svg>
 
       {/* Node count */}
-      <div className="absolute bottom-3 left-[192px] text-[10px] text-[#3d6b3d] select-none">
+      <div className="absolute bottom-3 left-[192px] text-[10px] text-warm-500 select-none">
         {nodes.length} nodes · {links.length} links
       </div>
 
       {viewBox && (
         <button onClick={() => setViewBox(null)}
-          className="absolute bottom-3 right-3 text-[10px] text-[#3d6b3d] hover:text-[#00ff41] transition-colors px-2 py-1 border border-[#1a3a1a] rounded bg-[#0a0f0a]/80"
+          className="absolute bottom-3 right-3 text-[10px] text-warm-500 hover:text-ember transition-colors px-2 py-1 border border-warm-200 rounded bg-warm-bg/80"
         >Reset view</button>
       )}
     </div>

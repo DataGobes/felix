@@ -4,14 +4,14 @@ export default function GraphDetailOverlay({ open, onClose, title, children }) {
       className="absolute inset-y-0 right-0 w-[480px] max-w-[calc(100%-180px)] z-20 transition-transform duration-300 ease-out"
       style={{ transform: open ? 'translateX(0)' : 'translateX(100%)' }}
     >
-      <div className="h-full bg-[#060d06] border-l border-[#0d2b0d] flex flex-col overflow-hidden">
-        <div className="px-4 py-2.5 border-b border-[#0d2b0d] flex items-center justify-between shrink-0">
-          <h2 className="text-xs font-medium text-[#5a8a5a] uppercase tracking-wider">
+      <div className="h-full bg-warm-100 border-l border-warm-200 flex flex-col overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between shrink-0">
+          <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {title || 'Detail'}
           </h2>
           <button
             onClick={onClose}
-            className="text-[#3d6b3d] hover:text-[#00ff41] transition-colors text-sm leading-none px-1"
+            className="text-warm-500 hover:text-ember transition-colors text-sm leading-none px-1"
           >
             ✕
           </button>
