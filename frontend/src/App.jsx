@@ -20,11 +20,8 @@ function Shell() {
       <header className="border-b border-[#0d2b0d] px-6 h-14 flex-shrink-0 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <div className="w-7 h-7 rounded bg-[#00ff41]/20 border border-[#00ff41]/40 flex items-center justify-center">
-              <span className="text-[#00ff41] text-sm font-bold">F</span>
-            </div>
-            <span className="text-sm font-bold text-[#00ff41] tracking-widest uppercase"
-                  style={{ animation: 'glitch 3s infinite' }}>
+            <img src="/felix-logo.svg" alt="Felix" className="w-7 h-7" />
+            <span className="text-sm font-bold text-[#c75c2c] tracking-widest uppercase">
               Felix
             </span>
           </Link>
