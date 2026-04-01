@@ -1,0 +1,135 @@
+services:
+  # ─── Database ──────────────────────────────────────────────────
+
+  felix-postgres:
+    image: pgvector/pgvector:pg16
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-felix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-felix}
+    volumes:
+      - ./backend/pgdata:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-felix} -d ${POSTGRES_DB:-felix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - felix
+
+  # ─── Search API ────────────────────────────────────────────────
+
+  felix-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.search
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      felix-postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: felix-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-felix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-felix}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-02-01}
+      AZURE_OPENAI_EMBEDDING_MODEL: ${AZURE_OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      IMAGES_PATH: /images
+      INGEST_PATH: /ingest
+    volumes:
+      - ~/mission-control-images:/images:ro
+      - ~/mission-control-ingest:/ingest
+    ports:
+      - "127.0.0.1:8001:8001"
+    networks:
+      - felix
+
+  # ─── Ingestion Worker ─────────────────────────────────────────
+
+  felix-ingestion:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      felix-postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: felix-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-felix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-felix}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-02-01}
+      AZURE_OPENAI_EMBEDDING_MODEL: ${AZURE_OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      INGEST_PATH: /ingest
+      IMAGES_PATH: /images
+      CHUNK_SIZE: ${CHUNK_SIZE:-500}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-50}
+      ENABLE_CODE_ENRICHMENT: ${ENABLE_CODE_ENRICHMENT:-true}
+      ENABLE_FORMULA_ENRICHMENT: ${ENABLE_FORMULA_ENRICHMENT:-true}
+      ENABLE_PICTURE_DESCRIPTION: ${ENABLE_PICTURE_DESCRIPTION:-false}
+      ENABLE_PICTURE_CLASSIFICATION: ${ENABLE_PICTURE_CLASSIFICATION:-false}
+      ENABLE_GPU_CONVERSION: ${ENABLE_GPU_CONVERSION:-false}
+      GPU_CONVERT_ENDPOINT: ${GPU_CONVERT_ENDPOINT:-http://felix-gpu:8080}
+      GPU_CONVERT_API_KEY: ${GPU_CONVERT_API_KEY:-}
+    volumes:
+      - ~/mission-control-ingest:/ingest:ro
+      - ~/mission-control-images:/images
+      - docling-models:/home/appuser/.cache
+    networks:
+      - felix
+
+  # ─── Frontend ──────────────────────────────────────────────────
+
+  felix-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - felix-api
+    ports:
+      - "127.0.0.1:5180:5180"
+    networks:
+      - felix
+
+  # ─── GPU Conversion (optional) ────────────────────────────────
+
+  felix-gpu:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.gpu
+    restart: unless-stopped
+    profiles: ["gpu"]
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      API_KEY: ${GPU_CONVERT_API_KEY:-}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - felix
+
+volumes:
+  docling-models:
+
+networks:
+  felix:
