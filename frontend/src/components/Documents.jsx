@@ -197,18 +197,18 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
   const totalDocs = allDocuments.length
 
   return (
-    <div className="bg-[#0a0f0a] rounded-xl shadow-lg shadow-black/20 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       {/* Header */}
       <div className="px-6 pt-5 pb-4 flex items-center justify-between">
-        <h2 className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">Documents</h2>
+        <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wider">Documents</h2>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#2a4a2a] tabular-nums">{totalDocs}</span>
+          <span className="text-xs text-warm-400 tabular-nums">{totalDocs}</span>
           <button
             onClick={() => { setCreating(!creating); setError(null) }}
             className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-colors ${
               creating
-                ? 'border-[#00ff41]/40 bg-[#00ff41]/[0.06] text-[#00ff41]'
-                : 'border-[#1a3a1a] text-[#8ab88a] hover:bg-[#00ff41]/[0.04] hover:border-[#00ff41]/40'
+                ? 'border-ember/40 bg-ember/[0.08] text-ember'
+                : 'border-warm-200 text-warm-900 hover:bg-ember/[0.04] hover:border-ember/40'
             }`}
           >
             + New Index
@@ -227,42 +227,42 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
 
       {/* Inline create-index form */}
       {creating && (
-        <div className="mx-6 mb-3 p-3 rounded-lg border border-[#0d2b0d] bg-[#00ff41]/[0.01] flex items-end gap-3">
+        <div className="mx-6 mb-3 p-3 rounded-lg border border-warm-200 bg-warm-100 flex items-end gap-3">
           <div className="flex-1">
-            <label className="text-[11px] font-medium text-[#3d6b3d] uppercase tracking-wider mb-1.5 block">
+            <label className="text-[11px] font-medium text-warm-500 uppercase tracking-wider mb-1.5 block">
               Name
             </label>
             <input
               value={newName}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. HR Policies"
-              className="w-full h-8 px-2.5 text-xs rounded-md bg-[#00ff41]/[0.03] border border-[#0d2b0d] text-[#c8e6c8] placeholder:text-[#3d6b3d] focus:outline-none focus:ring-1 focus:ring-[#00ff41]/50"
+              className="w-full h-8 px-2.5 text-xs rounded-md bg-warm-bg border border-warm-200 text-warm-900 placeholder:text-warm-500 focus:outline-none focus:ring-1 focus:ring-ember/50"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
               autoFocus
             />
           </div>
           <div className="w-32">
-            <label className="text-[11px] font-medium text-[#3d6b3d] uppercase tracking-wider mb-1.5 block">
+            <label className="text-[11px] font-medium text-warm-500 uppercase tracking-wider mb-1.5 block">
               Slug
             </label>
             <input
               value={newSlug}
               onChange={(e) => { setNewSlug(e.target.value); setSlugEdited(true) }}
               placeholder="hr-policies"
-              className="w-full h-8 px-2.5 text-xs rounded-md bg-[#00ff41]/[0.03] border border-[#0d2b0d] text-[#c8e6c8] placeholder:text-[#3d6b3d] focus:outline-none focus:ring-1 focus:ring-[#00ff41]/50 font-mono"
+              className="w-full h-8 px-2.5 text-xs rounded-md bg-warm-bg border border-warm-200 text-warm-900 placeholder:text-warm-500 focus:outline-none focus:ring-1 focus:ring-ember/50 font-mono"
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
           </div>
           <button
             onClick={handleCreate}
             disabled={submitting || !newName.trim()}
-            className="h-8 px-4 text-xs font-medium rounded-md bg-[#00ff41] text-black hover:bg-[#00cc33] disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="h-8 px-4 text-xs font-medium rounded-md bg-ember text-white hover:bg-ember/90 disabled:opacity-50 transition-colors whitespace-nowrap"
           >
             {submitting ? 'Creating...' : 'Create'}
           </button>
           <button
             onClick={() => { setCreating(false); setError(null) }}
-            className="h-8 px-3 text-xs font-medium rounded-md border border-[#0d2b0d] text-[#3d6b3d] hover:text-[#8ab88a] transition-colors"
+            className="h-8 px-3 text-xs font-medium rounded-md border border-warm-200 text-warm-500 hover:text-warm-900 transition-colors"
           >
             Cancel
           </button>
@@ -271,7 +271,7 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
 
       {/* Error display */}
       {error && (
-        <div className="mx-6 mb-3 px-3 py-2 rounded-lg bg-red-500/10 text-red-400 text-xs">
+        <div className="mx-6 mb-3 px-3 py-2 rounded-lg bg-red-50 text-red-600 text-xs">
           {error}
         </div>
       )}
@@ -288,23 +288,23 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
             <div key={idx.slug} className="mb-1">
               {/* Folder header */}
               <div
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#00ff41]/[0.03] cursor-pointer group"
+                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-warm-bg cursor-pointer group"
                 onClick={() => toggleFolder(idx.slug)}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <svg
-                    className={`w-3 h-3 text-[#3d6b3d] transition-transform flex-shrink-0 ${expanded ? 'rotate-90' : ''}`}
+                    className={`w-3 h-3 text-warm-500 transition-transform flex-shrink-0 ${expanded ? 'rotate-90' : ''}`}
                     fill="currentColor" viewBox="0 0 20 20"
                   >
                     <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm text-[#c8e6c8]">
+                  <span className="text-sm text-warm-900">
                     {expanded ? '📂' : '📁'}
                   </span>
-                  <span className="text-sm font-medium text-[#c8e6c8] truncate">
+                  <span className="text-sm font-medium text-warm-900 truncate">
                     {idx.display_name}
                   </span>
-                  <span className="text-xs text-[#2a4a2a] tabular-nums flex-shrink-0">
+                  <span className="text-xs text-warm-400 tabular-nums flex-shrink-0">
                     ({docs.length})
                   </span>
                 </div>
@@ -312,7 +312,7 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                   <button
                     onClick={(e) => { e.stopPropagation(); handleUploadClick(idx.slug) }}
                     disabled={isUploading}
-                    className="px-2 py-0.5 text-[11px] font-medium rounded border border-[#1a3a1a] text-[#8ab88a] hover:bg-[#00ff41]/[0.06] hover:border-[#00ff41]/40 transition-colors disabled:opacity-50"
+                    className="px-2 py-0.5 text-[11px] font-medium rounded border border-warm-200 text-warm-900 hover:bg-ember/[0.08] hover:border-ember/40 transition-colors disabled:opacity-50"
                     title={`Upload to ${idx.display_name}`}
                   >
                     {isUploading ? '...' : '↑'}
@@ -320,7 +320,7 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                   {idx.slug !== 'default' && docs.length === 0 && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleDelete(idx.slug) }}
-                      className="px-2 py-0.5 text-[11px] font-medium rounded border border-[#1a3a1a] text-[#3d6b3d] hover:text-red-400 hover:border-red-400/40 transition-colors"
+                      className="px-2 py-0.5 text-[11px] font-medium rounded border border-warm-200 text-warm-500 hover:text-red-600 hover:border-red-300 transition-colors"
                       title="Delete empty index"
                     >
                       ✕
@@ -333,10 +333,10 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
               {statusForFolder && statusForFolder.state !== 'uploading' && (
                 <div className={`mx-3 mb-1 px-3 py-1.5 rounded-lg text-xs ${
                   statusForFolder.state === 'error'
-                    ? 'bg-red-500/10 text-red-400'
+                    ? 'bg-red-50 text-red-600'
                     : statusForFolder.state === 'info'
-                      ? 'bg-[#00e5ff]/10 text-[#00e5ff]'
-                      : 'bg-emerald-500/10 text-emerald-400'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'bg-emerald-50 text-emerald-600'
                 }`}>
                   {statusForFolder.message}
                 </div>
@@ -350,8 +350,8 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                       key={doc.id}
                       className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors group/doc ${
                         selectedDocumentId === doc.id
-                          ? 'bg-[#00ff41]/[0.04] border-l-2 border-[#00ff41] pl-2.5'
-                          : 'hover:bg-[#00ff41]/[0.03] border-l-2 border-transparent'
+                          ? 'bg-ember/[0.04] border-l-2 border-ember pl-2.5'
+                          : 'hover:bg-warm-bg border-l-2 border-transparent'
                       }`}
                     >
                       <div
@@ -361,20 +361,20 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                           navigate(`/documents/${doc.id}`)
                         }}
                       >
-                        <p className="text-sm text-[#c8e6c8] truncate">
+                        <p className="text-sm text-warm-900 truncate">
                           {stripPrefix(doc.path, idx.slug)}
                         </p>
-                        <p className="text-xs text-[#3d6b3d] mt-0.5">
+                        <p className="text-xs text-warm-500 mt-0.5">
                           {formatBytes(doc.file_size)}
-                          <span className="text-[#1a3a1a] mx-1.5">·</span>
+                          <span className="text-warm-200 mx-1.5">·</span>
                           {doc.chunk_count} chunks
-                          <span className="text-[#1a3a1a] mx-1.5">·</span>
+                          <span className="text-warm-200 mx-1.5">·</span>
                           {formatDate(doc.ingested_at)}
                         </p>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDeleteDoc(doc) }}
-                        className="p-1 rounded opacity-0 group-hover/doc:opacity-100 text-[#3d6b3d] hover:text-red-400 transition-all flex-shrink-0"
+                        className="p-1 rounded opacity-0 group-hover/doc:opacity-100 text-warm-500 hover:text-red-600 transition-all flex-shrink-0"
                         title="Delete document"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -384,7 +384,7 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                     </div>
                   ))}
                   {docs.length === 0 && (
-                    <p className="text-xs text-[#2a4a2a] px-3 py-2 italic">Empty — upload a document</p>
+                    <p className="text-xs text-warm-400 px-3 py-2 italic">Empty — upload a document</p>
                   )}
                 </div>
               )}
@@ -395,7 +395,7 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
         {/* Documents that didn't match any index */}
         {(documentsByIndex['_unmatched']?.length > 0) && (
           <div className="mb-1">
-            <div className="px-3 py-2 text-xs text-[#2a4a2a]">Unmatched</div>
+            <div className="px-3 py-2 text-xs text-warm-400">Unmatched</div>
             <div className="ml-5">
               {documentsByIndex['_unmatched'].map(doc => (
                 <div
@@ -404,13 +404,13 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
                     onSelectDocument(doc.id)
                     navigate(`/documents/${doc.id}`)
                   }}
-                  className="flex items-center px-3 py-2 rounded-lg cursor-pointer hover:bg-[#00ff41]/[0.03] border-l-2 border-transparent"
+                  className="flex items-center px-3 py-2 rounded-lg cursor-pointer hover:bg-warm-bg border-l-2 border-transparent"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm text-[#c8e6c8] truncate">{doc.path}</p>
-                    <p className="text-xs text-[#3d6b3d] mt-0.5">
+                    <p className="text-sm text-warm-900 truncate">{doc.path}</p>
+                    <p className="text-xs text-warm-500 mt-0.5">
                       {formatBytes(doc.file_size)}
-                      <span className="text-[#1a3a1a] mx-1.5">·</span>
+                      <span className="text-warm-200 mx-1.5">·</span>
                       {doc.chunk_count} chunks
                     </p>
                   </div>
@@ -421,30 +421,30 @@ function Documents({ onSelectDocument, selectedDocumentId }) {
         )}
 
         {indexes.length === 0 && allDocuments.length === 0 && (
-          <p className="text-sm text-[#3d6b3d] px-3 py-6 text-center">No documents found</p>
+          <p className="text-sm text-warm-500 px-3 py-6 text-center">No documents found</p>
         )}
       </div>
 
       {/* Delete confirmation dialog */}
       {confirmDeleteDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setConfirmDeleteDoc(null)}>
-          <div className="bg-[#0a0f0a] border border-[#0d2b0d] rounded-xl p-5 max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <p className="text-sm text-[#c8e6c8] mb-1">Are you sure?</p>
-            <p className="text-xs text-[#3d6b3d] mb-4">
-              This will permanently delete <span className="text-[#c8e6c8] font-medium">{confirmDeleteDoc.path?.split('/').pop()}</span> and all its chunks, embeddings, and extracted data.
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setConfirmDeleteDoc(null)}>
+          <div className="bg-white border border-warm-200 rounded-xl p-5 max-w-sm mx-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <p className="text-sm text-warm-900 mb-1">Are you sure?</p>
+            <p className="text-xs text-warm-500 mb-4">
+              This will permanently delete <span className="text-warm-900 font-medium">{confirmDeleteDoc.path?.split('/').pop()}</span> and all its chunks, embeddings, and extracted data.
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setConfirmDeleteDoc(null)}
                 disabled={deletingDoc}
-                className="h-8 px-3 text-xs font-medium rounded-md border border-[#0d2b0d] text-[#3d6b3d] hover:text-[#8ab88a] transition-colors"
+                className="h-8 px-3 text-xs font-medium rounded-md border border-warm-200 text-warm-500 hover:text-warm-900 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDeleteDoc(confirmDeleteDoc.id)}
                 disabled={deletingDoc}
-                className="h-8 px-4 text-xs font-medium rounded-md bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+                className="h-8 px-4 text-xs font-medium rounded-md bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 disabled:opacity-50 transition-colors"
               >
                 {deletingDoc ? 'Deleting...' : 'Delete'}
               </button>
