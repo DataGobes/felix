@@ -66,17 +66,17 @@ function StageNode({ stage, status, isFailed, progress }) {
   else if (stageIdx === jobIdx) state = 'active'
 
   const nodeClasses = {
-    completed: 'bg-[#00ff41] border-[#00ff41] shadow-[0_0_6px_rgba(0,255,65,0.4)]',
-    active:    'bg-[#00ff41]/20 border-[#00ff41] pipeline-pulse',
-    failed:    'bg-red-500/20 border-red-500 shadow-[0_0_6px_rgba(239,68,68,0.4)]',
-    future:    'bg-[#0a0f0a] border-[#1a3a1a]',
+    completed: 'bg-ember border-ember',
+    active:    'bg-ember/20 border-ember',
+    failed:    'bg-red-50 border-red-300',
+    future:    'bg-warm-bg border-warm-200',
   }
 
   const labelClasses = {
-    completed: 'text-[#00ff41]',
-    active:    'text-[#00ff41]',
-    failed:    'text-red-400',
-    future:    'text-[#2a4a2a]',
+    completed: 'text-ember',
+    active:    'text-ember',
+    failed:    'text-red-600',
+    future:    'text-warm-400',
   }
 
   const showGpu = stage.key === 'converting' && state === 'active' && progress?.gpu
@@ -86,7 +86,7 @@ function StageNode({ stage, status, isFailed, progress }) {
       <div className="relative">
         <div className={`w-3 h-3 rounded-full border-2 transition-all duration-500 ${nodeClasses[state]}`} />
         {showGpu && (
-          <span className="absolute -top-2.5 -right-3 text-[7px] font-bold text-amber-400 bg-amber-500/15 px-1 rounded leading-tight">
+          <span className="absolute -top-2.5 -right-3 text-[7px] font-bold text-amber-600 bg-amber-50 px-1 rounded leading-tight">
             GPU
           </span>
         )}
@@ -110,10 +110,10 @@ function Connector({ fromStage, status, isFailed }) {
       <div
         className={`h-0.5 w-full rounded transition-all duration-500 ${
           completed
-            ? 'bg-[#00ff41]/60'
+            ? 'bg-ember/60'
             : active
-              ? 'bg-[#00ff41]/30 data-flow'
-              : 'bg-[#1a3a1a]'
+              ? 'bg-ember/30'
+              : 'border-warm-200'
         }`}
       />
     </div>
@@ -125,9 +125,9 @@ function EmbeddingProgressBar({ progress }) {
   const pct = Math.min(100, Math.round((progress.embedded / progress.total_chunks) * 100))
 
   return (
-    <div className="w-full h-1 bg-[#1a3a1a] rounded-full overflow-hidden mt-1">
+    <div className="w-full h-1 border-warm-200 rounded-full overflow-hidden mt-1">
       <div
-        className="h-full bg-[#00ff41] rounded-full transition-all duration-700 ease-out"
+        className="h-full bg-ember rounded-full transition-all duration-700 ease-out"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -148,17 +148,17 @@ function JobCard({ job }) {
 
   return (
     <div
-      className="px-4 py-3 rounded-lg border border-[#0d2b0d] bg-[#0a0f0a]/80 transition-opacity duration-1000"
+      className="px-4 py-3 rounded-lg border border-warm-200 bg-white transition-opacity duration-1000"
       style={{ opacity }}
     >
       {/* File info */}
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-xs text-[#c8e6c8] font-medium truncate">{job.filename}</span>
-          <span className="text-[10px] text-[#2a4a2a] font-mono flex-shrink-0">{job.index_slug}</span>
+          <span className="text-xs text-warm-900 font-medium truncate">{job.filename}</span>
+          <span className="text-[10px] text-warm-400 font-mono flex-shrink-0">{job.index_slug}</span>
         </div>
         {isFailed && (
-          <span className="text-[10px] text-red-400 flex-shrink-0">FAILED</span>
+          <span className="text-[10px] text-red-600 flex-shrink-0">FAILED</span>
         )}
       </div>
 
@@ -178,12 +178,12 @@ function JobCard({ job }) {
       <div className="mt-2 min-h-[16px]">
         {job.status === 'embedding' && <EmbeddingProgressBar progress={job.progress} />}
         {progressText && (
-          <p className={`text-[10px] mt-1 ${isFailed ? 'text-red-400/70' : 'text-[#3d6b3d]'}`}>
+          <p className={`text-[10px] mt-1 ${isFailed ? 'text-red-600' : 'text-warm-500'}`}>
             {progressText}
           </p>
         )}
         {isFailed && job.error_message && (
-          <p className="text-[10px] text-red-400/60 mt-0.5 truncate" title={job.error_message}>
+          <p className="text-[10px] text-red-500 mt-0.5 truncate" title={job.error_message}>
             {job.error_message}
           </p>
         )}
@@ -204,19 +204,19 @@ export default function IngestionPipeline() {
     <div className="mb-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-3">
-        <h2 className="text-xs font-medium text-[#3d6b3d] uppercase tracking-wider">
+        <h2 className="text-xs font-medium text-warm-500 uppercase tracking-wider">
           Ingestion Pipeline
         </h2>
         {activeCount > 0 && (
-          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-[#00ff41]/15 text-[#00ff41] tabular-nums">
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-ember/[0.08] text-ember tabular-nums">
             {activeCount}
           </span>
         )}
         <div className="flex items-center gap-1.5 ml-auto">
           <div className={`w-1.5 h-1.5 rounded-full ${
-            connected ? 'bg-[#00ff41] shadow-[0_0_4px_rgba(0,255,65,0.5)]' : 'bg-[#3d6b3d]'
+            connected ? 'bg-ember' : 'bg-warm-500'
           }`} />
-          <span className="text-[10px] text-[#2a4a2a]">
+          <span className="text-[10px] text-warm-400">
             {connected ? 'Live' : 'Polling'}
           </span>
         </div>
