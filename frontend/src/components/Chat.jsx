@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { streamChat } from '../api/client'
 
 function Chat() {
@@ -132,14 +134,21 @@ function Chat() {
                 : 'bg-warm-100 border border-warm-200'
             }`}>
               {/* Message content */}
-              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${
+              <div className={`text-sm leading-relaxed ${
                 msg.error ? 'text-red-600' : 'text-warm-600'
-              }`}>
-                {msg.content}
+              } prose prose-sm prose-warm max-w-none
+                prose-headings:text-warm-900 prose-headings:font-semibold prose-headings:mt-3 prose-headings:mb-1
+                prose-p:my-1.5 prose-p:leading-relaxed
+                prose-strong:text-warm-900 prose-strong:font-semibold
+                prose-table:text-xs prose-th:text-warm-500 prose-th:font-medium prose-th:border-warm-200 prose-td:border-warm-200
+                prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1
+                prose-code:text-ember prose-code:bg-warm-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
+                prose-a:text-ember prose-a:no-underline hover:prose-a:underline`}>
+                <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                 {streaming && i === messages.length - 1 && msg.role === 'assistant' && (
                   <span className="inline-block w-1.5 h-4 bg-ember ml-0.5 animate-pulse" />
                 )}
-              </p>
+              </div>
 
               {/* Citations */}
               {msg.citations && msg.citations.length > 0 && (
