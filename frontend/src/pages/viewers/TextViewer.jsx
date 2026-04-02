@@ -136,7 +136,7 @@ export default function TextViewer({ documentId }) {
   const totalTokens = chunks.reduce((s, c) => s + (c.token_count || 0), 0)
 
   return (
-    <div className="flex-1 grid grid-cols-[320px_1fr] min-h-0">
+    <div className="flex-1 grid grid-cols-[320px_minmax(0,1fr)] min-h-0">
       <aside className="border-r border-warm-200 flex flex-col min-h-0">
         <div className="px-4 py-2.5 border-b border-warm-200">
           <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Chunks</h2>

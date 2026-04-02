@@ -120,7 +120,9 @@ function DocumentViewer() {
         </div>
       </header>
 
-      <Viewer documentId={id} />
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <Viewer documentId={id} />
+      </div>
     </div>
   )
 }
