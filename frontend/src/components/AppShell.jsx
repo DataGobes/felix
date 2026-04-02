@@ -15,7 +15,7 @@ function AppShell() {
       <header className="bg-white border-b border-warm-200 px-6 h-14 flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <img src="/felix-logo.svg" alt="Felix" className="w-7 h-7" />
+            <img src="/felix-logo.png" alt="Felix" className="w-7 h-7" />
             <span className="text-sm font-semibold text-warm-900">Felix</span>
           </Link>
           <nav className="flex items-center gap-1">

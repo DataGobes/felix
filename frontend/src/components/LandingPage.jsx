@@ -25,7 +25,7 @@ function LandingPage() {
       {/* Header */}
       <header className="bg-white border-b border-warm-200 px-6 h-14 flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <img src="/felix-logo.svg" alt="Felix" className="w-7 h-7" />
+          <img src="/felix-logo.png" alt="Felix" className="w-7 h-7" />
           <span className="text-sm font-semibold text-warm-900">Felix</span>
         </div>
         <Link
@@ -39,7 +39,7 @@ function LandingPage() {
       {/* Hero */}
       <section className="py-20 px-6 text-center">
         <div className="max-w-xl mx-auto">
-          <img src="/felix-logo.svg" alt="Felix" className="w-14 h-14 mx-auto mb-6" />
+          <img src="/felix-logo.png" alt="Felix" className="w-14 h-14 mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-warm-900 leading-tight mb-4">
             Document Intelligence<br />for your business
           </h1>
