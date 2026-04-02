@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { getImageUrl } from '../../../api/client'
 import TableRenderer from './TableRenderer'
 
 export default function ChunkDetail({ chunk, tables = [], images = [], loading }) {
+  const [contentExpanded, setContentExpanded] = useState(false)
   if (loading) {
     return <div className="p-5"><p className="text-sm text-warm-500">Loading chunk…</p></div>
   }
@@ -42,8 +44,20 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
 
       <div className="space-y-1">
         <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Content</p>
-        <div className="p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed overflow-x-auto break-words">
-          {chunk.content}
+        <div className="relative">
+          <div className={`p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed break-words overflow-hidden ${
+            contentExpanded ? '' : 'max-h-40'
+          }`}>
+            {chunk.content}
+          </div>
+          {chunk.content?.length > 300 && (
+            <button
+              onClick={() => setContentExpanded(v => !v)}
+              className="mt-1 text-xs text-ember hover:text-ember/80 font-medium transition-colors"
+            >
+              {contentExpanded ? '▲ Collapse' : '▼ Show full content'}
+            </button>
+          )}
         </div>
       </div>
 
