@@ -41,11 +41,11 @@ export default function TableRenderer({ table }) {
 
       {parsed ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs table-fixed">
             <thead>
               <tr className="bg-warm-100">
                 {parsed.headers.map((h, i) => (
-                  <th key={i} className="px-3 py-2 text-left text-warm-600 font-medium border-b border-warm-200 whitespace-nowrap">
+                  <th key={i} className="px-3 py-2 text-left text-warm-600 font-medium border-b border-warm-200 whitespace-normal break-words">
                     {h}
                   </th>
                 ))}
@@ -55,7 +55,7 @@ export default function TableRenderer({ table }) {
               {parsed.rows.map((row, ri) => (
                 <tr key={ri} className={ri % 2 === 0 ? 'bg-white' : 'bg-warm-100/50'}>
                   {row.map((cell, ci) => (
-                    <td key={ci} className="px-3 py-1.5 text-warm-900 border-b border-warm-200 whitespace-nowrap">
+                    <td key={ci} className="px-3 py-1.5 text-warm-900 border-b border-warm-200 whitespace-normal break-words">
                       {cell}
                     </td>
                   ))}
