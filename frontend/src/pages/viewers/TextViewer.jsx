@@ -173,7 +173,7 @@ export default function TextViewer({ documentId }) {
         </ScrollArea>
       </aside>
 
-      <main className="flex flex-col min-h-0">
+      <main className="flex flex-col min-h-0 min-w-0 overflow-hidden">
         <div className="px-4 py-2.5 border-b border-warm-200">
           <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {selected

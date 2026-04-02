@@ -10,7 +10,7 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
   if (!chunk) return null
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-5 space-y-4 overflow-hidden">
       <div>
         <p className="text-xs font-medium text-warm-500 uppercase tracking-wider mb-1">Chunk</p>
         <div className="flex flex-wrap gap-2">
@@ -42,7 +42,7 @@ export default function ChunkDetail({ chunk, tables = [], images = [], loading }
 
       <div className="space-y-1">
         <p className="text-xs font-medium text-warm-500 uppercase tracking-wider">Content</p>
-        <div className="p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed">
+        <div className="p-4 bg-warm-100 rounded-lg border border-warm-200 text-sm text-warm-900 whitespace-pre-wrap leading-relaxed overflow-x-auto break-words">
           {chunk.content}
         </div>
       </div>

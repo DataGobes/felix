@@ -23,7 +23,7 @@ export default function TableRenderer({ table }) {
   const parsed = parseMarkdownTable(table.content_markdown)
 
   return (
-    <div className="rounded-lg overflow-hidden border border-warm-200">
+    <div className="rounded-lg overflow-x-auto border border-warm-200">
       {(table.caption || table.num_rows != null) && (
         <div className="px-3 py-1.5 bg-warm-100 border-b border-warm-200 flex items-center gap-2">
           {table.caption && (
