@@ -41,7 +41,7 @@ export default function TableRenderer({ table }) {
 
       {parsed ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-xs table-fixed">
+          <table className="text-xs">
             <thead>
               <tr className="bg-warm-100">
                 {parsed.headers.map((h, i) => (
