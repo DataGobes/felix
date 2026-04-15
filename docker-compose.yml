@@ -3,7 +3,6 @@ services:
 
   felix-postgres:
     image: pgvector/pgvector:pg16
-    platform: linux/amd64
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-felix}
@@ -27,7 +26,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.search
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       felix-postgres:
@@ -60,7 +58,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       felix-postgres:
@@ -99,7 +96,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       - felix-api
