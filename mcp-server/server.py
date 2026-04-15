@@ -488,7 +488,7 @@ async def felix_read_section(
             lines.append(f"\n$$\n{content}\n$$\n")
 
         elif elem_type == "code":
-            lang = elem.get("metadata", {}).get("language", "")
+            lang = (elem.get("metadata") or {}).get("code_language", "")
             lines.append(f"\n```{lang}\n{content}\n```\n")
 
         elif elem_type == "list_item":
