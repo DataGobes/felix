@@ -576,12 +576,12 @@ export default function PdfViewer({ documentId }) {
 
   if (viewMode === 'graph') {
     return (
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex flex-col h-full overflow-hidden">
         <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between shrink-0">
           <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Graph</h2>
           {viewToggle}
         </div>
-        <div className="flex-1 relative min-h-0">
+        <div className="flex-1 relative overflow-hidden">
           <GraphView
             headingTree={headingTree}
             pages={pages}
@@ -609,13 +609,13 @@ export default function PdfViewer({ documentId }) {
   }
 
   return (
-    <div className="flex-1 grid grid-cols-[320px_minmax(0,1fr)] min-h-0">
-      <aside className="border-r border-warm-200 flex flex-col min-h-0">
-        <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between">
+    <div className="grid grid-cols-[320px_minmax(0,1fr)] h-full">
+      <aside className="border-r border-warm-200 flex flex-col overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-warm-200 flex items-center justify-between shrink-0">
           <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">Browser</h2>
           {viewToggle}
         </div>
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="py-1">
             {headingTree.length > 0 ? (
               <>
@@ -633,18 +633,18 @@ export default function PdfViewer({ documentId }) {
               <p className="text-xs text-warm-500 px-4 py-2">No document content found</p>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </aside>
 
-      <main className="flex flex-col min-h-0 min-w-0">
-        <div className="px-4 py-2.5 border-b border-warm-200">
+      <main className="flex flex-col overflow-hidden min-w-0">
+        <div className="px-4 py-2.5 border-b border-warm-200 shrink-0">
           <h2 className="text-xs font-medium text-warm-600 uppercase tracking-wider">
             {detailTitle}
           </h2>
         </div>
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {renderDetail()}
-        </ScrollArea>
+        </div>
       </main>
     </div>
   )
