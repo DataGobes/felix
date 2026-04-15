@@ -156,9 +156,9 @@ async def felix_search(
             lines.append(f"    Section:  {headings}")
         lines.append(f"    {content[:500]}")
 
-        for tbl in r.get("tables", []):
+        for tbl in r.get("tables") or []:
             lines.append(f"    [Table] {tbl.get('caption', '')}")
-        for img in r.get("images", []):
+        for img in r.get("images") or []:
             lines.append(f"    [Image] {img.get('caption', '')}")
 
         lines.append("")
