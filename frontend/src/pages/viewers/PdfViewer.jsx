@@ -9,6 +9,8 @@ import {
   getPageElements,
   getImageUrl,
 } from '../../api/client'
+
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import TreeRow from './shared/TreeRow'
@@ -131,15 +133,21 @@ export default function PdfViewer({ documentId }) {
   const [chunkImages, setChunkImages] = useState([])
   const [detailLoading, setDetailLoading] = useState(false)
 
+  // Document-level images and tables keyed by page number
+  const [docImagesByPage, setDocImagesByPage] = useState({})
+  const [docTablesByPage, setDocTablesByPage] = useState({})
+
   useEffect(() => {
     let cancelled = false
     const fetchAll = async () => {
       setLoading(true)
       try {
-        const [s, p, c] = await Promise.all([
+        const [s, p, c, imgResp, tblResp] = await Promise.all([
           getDocumentStructure(documentId),
           getDocumentPages(documentId),
           getChunks(documentId),
+          fetch(`${API_URL}/images?document_id=${documentId}`).then(r => r.json()),
+          fetch(`${API_URL}/tables?document_id=${documentId}`).then(r => r.json()),
         ])
         if (cancelled) return
         setStructure(Array.isArray(s) ? s : [])
@@ -147,6 +155,23 @@ export default function PdfViewer({ documentId }) {
         setPages(Array.isArray(pArr) ? pArr : [])
         const cArr = c?.chunks ?? c
         setChunks(Array.isArray(cArr) ? cArr : [])
+
+        // Index images and tables by page number
+        const imgs = imgResp?.images ?? []
+        const imgMap = {}
+        for (const img of imgs) {
+          const pg = img.page_number
+          if (pg != null) (imgMap[pg] ??= []).push(img)
+        }
+        setDocImagesByPage(imgMap)
+
+        const tbls = tblResp?.tables ?? []
+        const tblMap = {}
+        for (const tbl of tbls) {
+          const pg = tbl.page_number
+          if (pg != null) (tblMap[pg] ??= []).push(tbl)
+        }
+        setDocTablesByPage(tblMap)
       } catch (e) {
         console.error('Failed to load document:', e)
       }
@@ -415,13 +440,20 @@ export default function PdfViewer({ documentId }) {
 
       case 'page': {
         const page = selected.data
-        const els = elementsCache[selected.pageNumber]
-        const isLoading = loadingPages.has(selected.pageNumber)
+        const pageNum = selected.pageNumber || page.page_number
+        const els = elementsCache[pageNum]
+        const isLoading = loadingPages.has(pageNum)
+        const pageImages = docImagesByPage[pageNum] || []
+        const pageTables = docTablesByPage[pageNum] || []
+
+        // Queues for matching picture/table elements to their rich data
+        const imageQueue = [...pageImages]
+        const tableQueue = [...pageTables]
 
         return (
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-warm-900">Page {page.page_number}</h2>
+              <h2 className="text-lg font-semibold text-warm-900">Page {pageNum}</h2>
               <div className="flex gap-2">
                 {page.width && page.height && (
                   <Badge variant="outline" className="text-warm-500 border-warm-200 text-xs">
@@ -430,7 +462,17 @@ export default function PdfViewer({ documentId }) {
                 )}
                 {els && (
                   <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
-                    {els.filter(e => e.content_layer === 'body').length} body elements
+                    {els.filter(e => e.content_layer === 'body').length} elements
+                  </Badge>
+                )}
+                {pageImages.length > 0 && (
+                  <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
+                    {pageImages.length} images
+                  </Badge>
+                )}
+                {pageTables.length > 0 && (
+                  <Badge variant="outline" className="text-warm-600 border-warm-200 text-xs">
+                    {pageTables.length} tables
                   </Badge>
                 )}
               </div>
@@ -441,9 +483,44 @@ export default function PdfViewer({ documentId }) {
                 {els
                   .filter(e => e.content_layer === 'body')
                   .sort((a, b) => a.reading_order - b.reading_order)
-                  .map((el, i) => (
-                    <ElementRenderer key={el.element_id || i} element={el} />
-                  ))}
+                  .filter((el, i, arr) => {
+                    // Skip caption elements that follow a picture (already shown on the image)
+                    if (el.element_type === 'caption' && i > 0 && arr[i - 1].element_type === 'picture') return false
+                    // Skip caption elements that follow a table (already shown on the table)
+                    if (el.element_type === 'caption' && i > 0 && arr[i - 1].element_type === 'table') return false
+                    return true
+                  })
+                  .map((el, i) => {
+                    // For picture elements, match to the next image and show it
+                    if (el.element_type === 'picture' && imageQueue.length > 0) {
+                      const img = imageQueue.shift()
+                      return (
+                        <ElementRenderer
+                          key={el.element_id || i}
+                          element={{ ...el, caption: img.caption || el.caption }}
+                          imageUrl={getImageUrl(img.id)}
+                        />
+                      )
+                    }
+                    // For table elements, render with markdown content
+                    if (el.element_type === 'table' && tableQueue.length > 0) {
+                      const tbl = tableQueue.shift()
+                      return (
+                        <div key={el.element_id || i} className="my-4">
+                          {tbl.caption && (
+                            <p className="text-xs text-warm-600 italic mb-2">{tbl.caption}</p>
+                          )}
+                          <div className="overflow-x-auto rounded-lg border border-warm-200 bg-white p-3">
+                            <pre className="text-xs text-warm-900 whitespace-pre-wrap font-mono leading-relaxed">
+                              {tbl.content_text || tbl.content_markdown || '(table content)'}
+                            </pre>
+                          </div>
+                          <p className="text-[10px] text-warm-400 mt-1">{tbl.num_rows} rows × {tbl.num_cols} cols</p>
+                        </div>
+                      )
+                    }
+                    return <ElementRenderer key={el.element_id || i} element={el} />
+                  })}
                 {els.filter(e => e.content_layer === 'body').length === 0 && (
                   <p className="text-sm text-warm-500">No body elements on this page</p>
                 )}
@@ -549,10 +626,10 @@ export default function PdfViewer({ documentId }) {
   }
 
   const detailTitle = selected
-    ? selected.type === 'heading' ? 'Section Overview'
-    : selected.type === 'page' ? 'Page View'
-    : selected.type === 'element' ? 'Element Detail'
-    : selected.type === 'chunk' ? 'Chunk Detail'
+    ? selected.type === 'heading' ? `Section: ${selected.data?.text || 'Overview'}`
+    : selected.type === 'page' ? `Page ${selected.pageNumber || selected.data?.page_number || ''}`
+    : selected.type === 'element' ? `${selected.data?.element_type || 'Element'} — p.${selected.pageNumber || ''}`
+    : selected.type === 'chunk' ? `Chunk ${selected.chunkId || ''}`
     : 'Detail'
     : 'Detail'
 

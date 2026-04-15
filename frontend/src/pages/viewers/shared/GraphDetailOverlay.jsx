@@ -1,7 +1,7 @@
 export default function GraphDetailOverlay({ open, onClose, title, children }) {
   return (
     <div
-      className="absolute inset-y-0 right-0 w-[480px] max-w-[calc(100%-180px)] z-20 transition-transform duration-300 ease-out"
+      className="absolute inset-y-0 right-0 w-[640px] max-w-[calc(100%-180px)] z-20 transition-transform duration-300 ease-out"
       style={{ transform: open ? 'translateX(0)' : 'translateX(100%)' }}
     >
       <div className="h-full bg-warm-100 border-l border-warm-200 flex flex-col overflow-hidden">
