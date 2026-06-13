@@ -638,7 +638,8 @@ async def run_wiki_build(pool, llm: LLM, embedder: "Embedder | None",
                 await persist_relationships(conn, index_id, rels, name_to_id)
                 await persist_pages(conn, index_id, written, name_to_id)
                 # index + log pages.
-                idx_md = render_index(specs)
+                _written_slugs = {w["slug"] for w in written}
+                idx_md = render_index([s for s in specs if s.slug in _written_slugs])
                 await persist_pages(conn, index_id, [{
                     "slug": "index", "title": "Wiki Index", "type": "index",
                     "content_md": idx_md, "felix_refs": [], "entity_name": None, "links": [],
