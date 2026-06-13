@@ -14,6 +14,7 @@ function Wiki() {
   const [pages, setPages] = useState([])
   const [selected, setSelected] = useState(null)
   const [page, setPage] = useState(null)
+  const [buildError, setBuildError] = useState(null)
   const navigate = useNavigate()
   const { job } = useWikiBuild(indexSlug)
 
@@ -24,10 +25,20 @@ function Wiki() {
   }, [indexSlug])
 
   useEffect(() => { loadPages() }, [loadPages])
-  useEffect(() => { setSelected(null); setPage(null) }, [indexSlug])
+  useEffect(() => { setSelected(null); setPage(null); setBuildError(null) }, [indexSlug])
   useEffect(() => {
     if (job?.status === 'completed') loadPages()
   }, [job?.status, loadPages])
+
+  const startBuild = async () => {
+    setBuildError(null)
+    try {
+      const res = await buildWiki(indexSlug)
+      if (res?.detail) setBuildError(res.detail)
+    } catch {
+      setBuildError('Failed to start build')
+    }
+  }
 
   const openPage = async (slug) => {
     setSelected(slug)
@@ -71,7 +82,7 @@ function Wiki() {
             className="text-xs border border-warm-200 rounded-md px-2 py-1.5">
             {indexes.map(i => <option key={i.slug} value={i.slug}>{i.display_name || i.slug}</option>)}
           </select>
-          <button onClick={() => buildWiki(indexSlug)}
+          <button onClick={startBuild}
             className="px-3 py-1.5 text-xs font-medium rounded-md bg-ember text-white hover:opacity-90">
             Build Wiki
           </button>
@@ -81,6 +92,9 @@ function Wiki() {
       {job && job.status && job.status !== 'completed' && job.status !== 'none' && (
         <div className="mb-4 text-xs text-ember">Building… {job.status}
           {job.progress?.pages ? ` (${job.progress.pages} pages)` : ''}</div>
+      )}
+      {buildError && (
+        <div className="mb-4 text-xs text-red-600">{buildError}</div>
       )}
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
