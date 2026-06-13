@@ -115,3 +115,12 @@ async def test_merge_entities_by_embedding_merges_near_duplicates():
     assert len(merged) == 2
     survivor = next(m for m in merged if m.name in ("LLM", "Large Language Model"))
     assert survivor.chunk_ids == [1, 2]
+
+
+def test_extract_json_fenced_with_nested_objects():
+    text = '```json\n{"entities": [{"name": "x", "chunk_ids": [1]}], "relationships": []}\n```'
+    assert wb.extract_json(text) == {"entities": [{"name": "x", "chunk_ids": [1]}], "relationships": []}
+
+
+def test_cosine_zero_norm_returns_zero():
+    assert wb.cosine([0.0, 0.0], [1.0, 0.0]) == 0.0

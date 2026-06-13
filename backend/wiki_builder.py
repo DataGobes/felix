@@ -7,6 +7,7 @@ pipeline. The LLM and embedding clients are injected so tests can stub them.
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass, field
 from typing import Optional, Protocol
@@ -82,7 +83,7 @@ def extract_json(text: str) -> dict:
     """
     if not text:
         return {}
-    fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    fence = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     candidate = fence.group(1) if fence else None
     if candidate is None:
         start = text.find("{")
@@ -191,9 +192,6 @@ def merge_entities_by_name(entities: list[Entity]) -> list[Entity]:
             cur.type = e.type
         cur.chunk_ids = sorted(set(cur.chunk_ids) | set(e.chunk_ids))
     return list(by_norm.values())
-
-
-import math
 
 
 def cosine(a: list[float], b: list[float]) -> float:
