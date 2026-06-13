@@ -246,3 +246,50 @@ async def test_minimax_llm_complete_returns_content():
 async def test_minimax_llm_handles_none_content():
     llm = wb.MiniMaxLLM(_FakeChatClient(None), model="m")
     assert await llm.complete("s", "u") == ""
+
+
+class ScriptedLLM:
+    """Returns extraction JSON for extraction prompts, markdown for page prompts."""
+    async def complete(self, system, user):
+        if "information-extraction engine" in system:
+            return ('{"entities": ['
+                    '{"name": "Claude", "type": "system", "description": "AI model", "chunk_ids": [1]},'
+                    '{"name": "Alignment", "type": "concept", "description": "safety", "chunk_ids": [1, 2]}'
+                    '], "relationships": ['
+                    '{"subject": "Claude", "predicate": "exhibits", "object": "Alignment", "chunk_ids": [1]}'
+                    ']}')
+        # page-writing prompt
+        return "Intro about the topic [Felix:chunk:1]. See [[alignment]]."
+
+
+async def test_extract_stage_dedups():
+    chunks = [
+        wb.ChunkRow(chunk_id=1, document_id=1, content="Claude is aligned."),
+        wb.ChunkRow(chunk_id=2, document_id=1, content="Alignment matters."),
+    ]
+    ents, rels = await wb.run_extract_stage(chunks, ScriptedLLM(), batch_size=5)
+    names = sorted(e.name for e in ents)
+    assert names == ["Alignment", "Claude"]
+    assert len(rels) == 1
+
+
+async def test_full_pipeline_in_memory():
+    docs = [wb.DocRow(document_id=1, path="card.pdf")]
+    chunks = [
+        wb.ChunkRow(chunk_id=1, document_id=1, content="Claude is aligned."),
+        wb.ChunkRow(chunk_id=2, document_id=1, content="Alignment matters."),
+    ]
+    llm = ScriptedLLM()
+    ents, rels = await wb.run_extract_stage(chunks, llm, batch_size=5)
+    specs = wb.plan_pages(docs, ents, rels, threshold=1.0)
+    written = await wb.run_write_stage(specs, chunks, llm)
+    # Every written page has frontmatter + body.
+    assert all(w["content_md"].startswith("---\n") for w in written)
+    claude = next(w for w in written if w["slug"] == "claude")
+    assert "[Felix:chunk:1]" in claude["content_md"]
+    assert claude["felix_refs"] == [1]
+    assert claude["links"] == ["alignment"]
+    # Lint finds no orphan among linked pages (alignment is linked from claude).
+    all_links = [(w["slug"], t) for w in written for t in w["links"]]
+    orphans = wb.find_orphans([w["slug"] for w in written], all_links)
+    assert "alignment" not in orphans

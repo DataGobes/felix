@@ -434,3 +434,58 @@ class AzureEmbedder:
             resp = self._client.embeddings.create(model=self._model, input=text)
             return resp.data[0].embedding
         return await asyncio.to_thread(_run)
+
+
+# --------------------------------------------------------------------------
+# Pipeline stages
+# --------------------------------------------------------------------------
+
+def _batched(items: list, n: int):
+    for i in range(0, len(items), n):
+        yield items[i:i + n]
+
+
+async def run_extract_stage(
+    chunks: list[ChunkRow], llm: LLM, batch_size: int = 5
+) -> tuple[list[Entity], list[Relationship]]:
+    all_entities: list[Entity] = []
+    all_rels: list[Relationship] = []
+    for batch in _batched(chunks, batch_size):
+        system, user = build_extraction_prompt(batch)
+        raw = await llm.complete(system, user)
+        ents, rels = parse_extraction(raw, [c.chunk_id for c in batch])
+        all_entities.extend(ents)
+        all_rels.extend(rels)
+    return merge_entities_by_name(all_entities), all_rels
+
+
+async def run_write_stage(
+    specs: list[PageSpec], all_chunks: list[ChunkRow], llm: LLM
+) -> list[dict]:
+    """Write each page. Returns dicts ready for persistence."""
+    chunk_by_id = {c.chunk_id: c for c in all_chunks}
+    title_by_slug = {s.slug: s.title for s in specs}
+    written: list[dict] = []
+    for spec in specs:
+        if spec.type == "source" and spec.source_document_id is not None:
+            relevant = [c for c in all_chunks if c.document_id == spec.source_document_id]
+        elif spec.type == "overview":
+            relevant = all_chunks[:20]
+        else:
+            relevant = [chunk_by_id[c] for c in spec.related_chunk_ids if c in chunk_by_id]
+        link_titles = {slug: title_by_slug.get(slug, slug) for slug in spec.links}
+        system, user = build_page_prompt(spec, relevant, link_titles)
+        body = await llm.complete(system, user)
+        sources = sorted({chunk_by_id[c].document_id for c in extract_felix_refs(body) if c in chunk_by_id})
+        frontmatter = render_frontmatter(spec, sources=[f"doc:{d}" for d in sources] or ["corpus"])
+        links = sorted(set(spec.links) | set(extract_wiki_links(body)))
+        written.append({
+            "slug": spec.slug,
+            "title": spec.title,
+            "type": spec.type,
+            "content_md": f"{frontmatter}\n\n{body}",
+            "felix_refs": extract_felix_refs(body),
+            "entity_name": spec.entity_name,
+            "links": links,
+        })
+    return written
