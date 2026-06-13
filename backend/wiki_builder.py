@@ -300,3 +300,63 @@ def plan_pages(
             if o_slug not in page_by_slug[s_slug].links:
                 page_by_slug[s_slug].links.append(o_slug)
     return pages
+
+
+# --------------------------------------------------------------------------
+# Page-writing helpers
+# --------------------------------------------------------------------------
+
+_PAGE_SYSTEM = """You are writing one page of a structured knowledge wiki built \
+from a document corpus. Write clear, factual Markdown.
+
+Hard rules:
+- Cite EVERY factual claim with [Felix:chunk:N] using the chunk markers provided.
+- Link related wiki pages with [[slug]] using the provided link slugs.
+- Start directly with a short intro paragraph, then use ## headings.
+- Do NOT invent facts not present in the supplied chunks.
+- Do NOT write YAML frontmatter; it is added automatically.
+- Be concise; flag contradictions or uncertainty explicitly."""
+
+
+def render_frontmatter(spec: PageSpec, sources: list[str]) -> str:
+    refs = ", ".join(f"chunk:{c}" for c in spec.related_chunk_ids)
+    src = ", ".join(sources)
+    return (
+        "---\n"
+        f"title: {spec.title}\n"
+        f"type: {spec.type}\n"
+        f"sources: [{src}]\n"
+        f"felix_refs: [{refs}]\n"
+        "---"
+    )
+
+
+def extract_wiki_links(body: str) -> list[str]:
+    seen: list[str] = []
+    for m in re.findall(r"\[\[([^\]]+)\]\]", body):
+        slug = m.strip()
+        if slug and slug not in seen:
+            seen.append(slug)
+    return seen
+
+
+def extract_felix_refs(body: str) -> list[int]:
+    seen: list[int] = []
+    for m in re.findall(r"\[Felix:chunk:(\d+)\]", body):
+        v = int(m)
+        if v not in seen:
+            seen.append(v)
+    return seen
+
+
+def build_page_prompt(
+    spec: PageSpec, chunks: list[ChunkRow], link_titles: dict[str, str]
+) -> tuple[str, str]:
+    chunk_text = "\n\n".join(f"[chunk:{c.chunk_id}] {c.content}" for c in chunks)
+    links_hint = ", ".join(f"[[{slug}]] ({title})" for slug, title in link_titles.items()) or "(none)"
+    user = (
+        f"Write the wiki page titled \"{spec.title}\" (type: {spec.type}).\n\n"
+        f"Available cross-link slugs you may use where relevant: {links_hint}\n\n"
+        f"Source chunks (cite these as [Felix:chunk:N]):\n\n{chunk_text}"
+    )
+    return _PAGE_SYSTEM, user

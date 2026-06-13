@@ -169,3 +169,35 @@ def test_plan_pages_produces_expected_set():
     # Relationship became a planned cross-link.
     claude_page = next(p for p in pages if p.slug == "claude")
     assert "alignment" in claude_page.links
+
+
+def test_render_frontmatter():
+    spec = wb.PageSpec(slug="claude", title="Claude", type="entity",
+                       entity_name="Claude", related_chunk_ids=[7, 8], links=["alignment"])
+    fm = wb.render_frontmatter(spec, sources=["card.pdf"])
+    assert fm.startswith("---\n")
+    assert "title: Claude" in fm
+    assert "type: entity" in fm
+    assert "felix_refs: [chunk:7, chunk:8]" in fm
+    assert fm.rstrip().endswith("---")
+
+
+def test_extract_wiki_links():
+    body = "See [[alignment]] and [[model-welfare]] plus [[alignment]] again."
+    assert wb.extract_wiki_links(body) == ["alignment", "model-welfare"]
+
+
+def test_extract_felix_refs():
+    body = "Claude scored 100% [Felix:chunk:7]. It deceived [Felix:chunk:42]."
+    assert wb.extract_felix_refs(body) == [7, 42]
+
+
+def test_build_page_prompt_contains_citation_rules_and_chunks():
+    spec = wb.PageSpec(slug="claude", title="Claude", type="entity", entity_name="Claude",
+                       related_chunk_ids=[7], links=["alignment"])
+    chunks = [wb.ChunkRow(chunk_id=7, document_id=1, content="Scored 100% on Cybench.")]
+    system, user = wb.build_page_prompt(spec, chunks, link_titles={"alignment": "Alignment"})
+    assert "[Felix:chunk:N]" in system
+    assert "[[alignment]]" in user or "[[Alignment]]" in user
+    assert "[chunk:7]" in user
+    assert "Cybench" in user
