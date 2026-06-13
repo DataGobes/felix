@@ -22,7 +22,7 @@ export default function useWikiBuild(indexSlug) {
     es.onerror = () => {
       setConnected(false)
       es.close()
-      esRef.current = null
+      if (esRef.current === es) esRef.current = null
     }
   }, [indexSlug])
 

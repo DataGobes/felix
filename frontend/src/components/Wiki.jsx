@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useNavigate } from 'react-router-dom'
-import { getIndexes, getWikiPages, getWikiPage, buildWiki } from '../api/client'
+import { getIndexes, getWikiPages, getWikiPage, buildWiki, getChunk } from '../api/client'
 import useWikiBuild from '../hooks/useWikiBuild'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -24,6 +24,7 @@ function Wiki() {
   }, [indexSlug])
 
   useEffect(() => { loadPages() }, [loadPages])
+  useEffect(() => { setSelected(null); setPage(null) }, [indexSlug])
   useEffect(() => {
     if (job?.status === 'completed') loadPages()
   }, [job?.status, loadPages])
@@ -32,6 +33,13 @@ function Wiki() {
     setSelected(slug)
     const data = await getWikiPage(indexSlug, slug)
     setPage(data)
+  }
+
+  const openCitation = async (chunkId) => {
+    try {
+      const chunk = await getChunk(chunkId)
+      if (chunk?.document_id) navigate(`/documents/${chunk.document_id}?chunk=${chunkId}`)
+    } catch { /* ignore */ }
   }
 
   const renderBody = (md) => {
@@ -43,7 +51,7 @@ function Wiki() {
 
   const onLinkClick = (href) => {
     if (href?.startsWith('#wiki-')) { openPage(href.slice(6)); return false }
-    if (href?.startsWith('#chunk-')) { navigate(`/documents/1?chunk=${href.slice(7)}`); return false }
+    if (href?.startsWith('#chunk-')) { openCitation(href.slice(7)); return false }
     return true
   }
 
