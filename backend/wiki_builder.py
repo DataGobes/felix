@@ -168,3 +168,26 @@ def parse_extraction(raw: str, batch_chunk_ids: list[int]) -> tuple[list[Entity]
             chunk_ids=cids or list(batch_chunk_ids),
         ))
     return entities, relationships
+
+
+def normalize_name(name: str) -> str:
+    return re.sub(r"\s+", " ", name.strip().lower())
+
+
+def merge_entities_by_name(entities: list[Entity]) -> list[Entity]:
+    """Merge entities sharing a normalized name. Longest description wins;
+    chunk_ids are unioned + sorted; mention frequency preserved via chunk_ids."""
+    by_norm: dict[str, Entity] = {}
+    for e in entities:
+        key = normalize_name(e.name)
+        if key not in by_norm:
+            by_norm[key] = Entity(name=e.name.strip(), type=e.type,
+                                  description=e.description, chunk_ids=list(e.chunk_ids))
+            continue
+        cur = by_norm[key]
+        if len(e.description) > len(cur.description):
+            cur.description = e.description
+        if e.type != "other" and cur.type == "other":
+            cur.type = e.type
+        cur.chunk_ids = sorted(set(cur.chunk_ids) | set(e.chunk_ids))
+    return list(by_norm.values())

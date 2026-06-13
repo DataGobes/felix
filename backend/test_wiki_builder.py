@@ -64,3 +64,21 @@ def test_parse_extraction_defaults_chunk_ids_to_batch():
 def test_parse_extraction_handles_garbage():
     ents, rels = wb.parse_extraction("the model returned prose", [1])
     assert ents == [] and rels == []
+
+
+def test_merge_entities_by_name_combines_duplicates():
+    ents = [
+        wb.Entity(name="Claude", type="system", description="short", chunk_ids=[1]),
+        wb.Entity(name="  claude ", type="system", description="a much longer description", chunk_ids=[2, 1]),
+        wb.Entity(name="Firefox", type="system", description="browser", chunk_ids=[3]),
+    ]
+    merged = wb.merge_entities_by_name(ents)
+    assert len(merged) == 2
+    claude = next(m for m in merged if m.name.lower().strip() == "claude")
+    # Longest description wins; chunk_ids deduped + sorted.
+    assert claude.description == "a much longer description"
+    assert claude.chunk_ids == [1, 2]
+
+
+def test_normalize_name():
+    assert wb.normalize_name("  The  Model ") == "the model"
