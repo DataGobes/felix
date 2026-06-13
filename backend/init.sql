@@ -479,6 +479,10 @@ CREATE TABLE IF NOT EXISTS wiki_jobs (
 CREATE INDEX IF NOT EXISTS idx_wiki_jobs_active
   ON wiki_jobs (status) WHERE status NOT IN ('completed', 'failed');
 
+-- At most one active (non-terminal) wiki build per index.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_wiki_jobs_one_active
+  ON wiki_jobs (index_id) WHERE status NOT IN ('completed', 'failed');
+
 CREATE TABLE IF NOT EXISTS wiki_entities (
   id              SERIAL PRIMARY KEY,
   index_id        INTEGER NOT NULL REFERENCES indexes(id) ON DELETE CASCADE,

@@ -242,6 +242,18 @@ async def lifespan(app: FastAPI):
     client = get_openai_client()
     logger.info("openai_client_ready", endpoint=AZURE_ENDPOINT, model=AZURE_EMBEDDING_MODEL)
 
+    # Reap orphaned wiki jobs: a non-terminal job at startup means the worker
+    # died mid-build; mark it failed so it doesn't block new builds or hang the UI.
+    try:
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE wiki_jobs SET status = 'failed', "
+                "error_message = 'interrupted by restart', completed_at = NOW() "
+                "WHERE status NOT IN ('completed', 'failed')")
+    except Exception as e:
+        logger.warning("wiki_job_reap_failed", error=str(e))
+
     yield
 
     logger.info("search_api_shutting_down")
@@ -1320,6 +1332,9 @@ async def delete_index(slug: str):
 
 # ── Wiki ──────────────────────────────────────────────────────────────────
 
+# Strong references to background wiki-build tasks — prevents GC cancellation.
+_wiki_tasks: set = set()
+
 
 def _build_llm():
     return wiki.MiniMaxLLM(_chat_client, _CHAT_MODEL)
@@ -1331,20 +1346,31 @@ def _build_embedder():
 
 @app.post("/indexes/{slug}/wiki/build")
 async def build_wiki(slug: str):
-    """Enqueue an autonomous wiki build for an index."""
+    """Enqueue an autonomous wiki build for an index. Rejects if one is already running."""
     pool = await get_db_pool()
     async with pool.acquire() as conn:
         index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
         if index_id is None:
             raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
-        job_id = await conn.fetchval(
-            "INSERT INTO wiki_jobs (index_id, status) VALUES ($1, 'queued') RETURNING id",
-            index_id)
+        active = await conn.fetchval(
+            "SELECT id FROM wiki_jobs WHERE index_id = $1 "
+            "AND status NOT IN ('completed', 'failed') LIMIT 1", index_id)
+        if active is not None:
+            raise HTTPException(status_code=409, detail="A wiki build is already in progress for this index")
+        try:
+            job_id = await conn.fetchval(
+                "INSERT INTO wiki_jobs (index_id, status) VALUES ($1, 'queued') RETURNING id",
+                index_id)
+        except asyncpg.UniqueViolationError:
+            raise HTTPException(status_code=409, detail="A wiki build is already in progress for this index")
 
     from datetime import datetime, timezone
     ts = datetime.now(timezone.utc).isoformat()
-    asyncio.create_task(
+    task = asyncio.create_task(
         wiki.run_wiki_build(pool, _build_llm(), _build_embedder(), slug, job_id, ts))
+    if hasattr(task, "add_done_callback"):
+        _wiki_tasks.add(task)
+        task.add_done_callback(_wiki_tasks.discard)
     return {"job_id": job_id, "status": "queued", "index_slug": slug}
 
 

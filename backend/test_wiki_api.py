@@ -44,11 +44,18 @@ async def test_build_wiki_enqueues(client_for, monkeypatch):
     import search as s
     started = {}
     monkeypatch.setattr(s.asyncio, "create_task", lambda coro: started.setdefault("task", coro) or coro.close())
-    client = await client_for({"fetchval": [1, 77]})  # index_id, then job_id
+    client = await client_for({"fetchval": [1, None, 77]})  # index_id, no active job, then job_id
     resp = await client.post("/indexes/default/wiki/build")
     assert resp.status_code == 200
     assert resp.json()["job_id"] == 77
     assert resp.json()["status"] == "queued"
+
+
+async def test_build_wiki_rejects_when_active(client_for):
+    # index_id=1, then an active job id (5) -> 409, no enqueue.
+    client = await client_for({"fetchval": [1, 5]})
+    resp = await client.post("/indexes/default/wiki/build")
+    assert resp.status_code == 409
 
 
 async def test_wiki_stream_emits_event_and_closes(client_for):
