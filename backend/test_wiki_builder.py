@@ -82,3 +82,36 @@ def test_merge_entities_by_name_combines_duplicates():
 
 def test_normalize_name():
     assert wb.normalize_name("  The  Model ") == "the model"
+
+
+import pytest
+
+
+class StubEmbedder:
+    """Returns a fixed vector per entity name for deterministic similarity."""
+    def __init__(self, vectors):
+        self._vectors = vectors
+    async def embed(self, text):
+        return self._vectors[text]
+
+
+def test_cosine():
+    assert wb.cosine([1.0, 0.0], [1.0, 0.0]) == pytest.approx(1.0)
+    assert wb.cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)
+
+
+async def test_merge_entities_by_embedding_merges_near_duplicates():
+    ents = [
+        wb.Entity(name="LLM", description="large language model", chunk_ids=[1]),
+        wb.Entity(name="Large Language Model", description="an LLM", chunk_ids=[2]),
+        wb.Entity(name="Firefox", description="browser", chunk_ids=[3]),
+    ]
+    embedder = StubEmbedder({
+        "LLM: large language model": [1.0, 0.0, 0.0],
+        "Large Language Model: an LLM": [0.99, 0.01, 0.0],
+        "Firefox: browser": [0.0, 0.0, 1.0],
+    })
+    merged = await wb.merge_entities_by_embedding(ents, embedder, threshold=0.9)
+    assert len(merged) == 2
+    survivor = next(m for m in merged if m.name in ("LLM", "Large Language Model"))
+    assert survivor.chunk_ids == [1, 2]

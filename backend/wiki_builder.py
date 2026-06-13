@@ -191,3 +191,41 @@ def merge_entities_by_name(entities: list[Entity]) -> list[Entity]:
             cur.type = e.type
         cur.chunk_ids = sorted(set(cur.chunk_ids) | set(e.chunk_ids))
     return list(by_norm.values())
+
+
+import math
+
+
+def cosine(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    if na == 0 or nb == 0:
+        return 0.0
+    return dot / (na * nb)
+
+
+async def merge_entities_by_embedding(
+    entities: list[Entity], embedder: Embedder, threshold: float = 0.88
+) -> list[Entity]:
+    """Greedy merge of entities whose embeddings exceed `threshold`.
+    First occurrence is the survivor; later near-duplicates fold into it."""
+    survivors: list[Entity] = []
+    vectors: list[list[float]] = []
+    for e in entities:
+        vec = await embedder.embed(f"{e.name}: {e.description}")
+        merged_into = None
+        for i, sv in enumerate(vectors):
+            if cosine(vec, sv) >= threshold:
+                merged_into = i
+                break
+        if merged_into is None:
+            survivors.append(Entity(name=e.name, type=e.type,
+                                   description=e.description, chunk_ids=list(e.chunk_ids)))
+            vectors.append(vec)
+        else:
+            tgt = survivors[merged_into]
+            if len(e.description) > len(tgt.description):
+                tgt.description = e.description
+            tgt.chunk_ids = sorted(set(tgt.chunk_ids) | set(e.chunk_ids))
+    return survivors
