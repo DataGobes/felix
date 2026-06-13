@@ -220,3 +220,29 @@ def test_render_index_lists_pages_by_type():
     assert "# Wiki Index" in rendered
     assert "[[claude]]" in rendered
     assert "Overview" in rendered
+
+
+class _FakeChoice:
+    def __init__(self, content): self.message = type("M", (), {"content": content})
+
+
+class _FakeCompletions:
+    def __init__(self, content): self._content = content
+    async def create(self, **kwargs):
+        return type("R", (), {"choices": [_FakeChoice(self._content)]})
+
+
+class _FakeChatClient:
+    def __init__(self, content):
+        self.chat = type("C", (), {"completions": _FakeCompletions(content)})
+
+
+async def test_minimax_llm_complete_returns_content():
+    llm = wb.MiniMaxLLM(_FakeChatClient("hello world"), model="MiniMax-M2.7")
+    out = await llm.complete("sys", "user")
+    assert out == "hello world"
+
+
+async def test_minimax_llm_handles_none_content():
+    llm = wb.MiniMaxLLM(_FakeChatClient(None), model="m")
+    assert await llm.complete("s", "u") == ""

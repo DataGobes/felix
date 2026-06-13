@@ -398,3 +398,39 @@ def render_log_entry(timestamp: str, n_docs: int, n_entities: int, n_pages: int)
         f"- entities: {n_entities}\n"
         f"- pages: {n_pages}\n"
     )
+
+
+# --------------------------------------------------------------------------
+# Real client adapters (injected into run_wiki_build from search.py)
+# --------------------------------------------------------------------------
+
+class MiniMaxLLM:
+    """Wraps the search.py AsyncOpenAI MiniMax client as the builder LLM."""
+    def __init__(self, client, model: str):
+        self._client = client
+        self._model = model
+
+    async def complete(self, system: str, user: str) -> str:
+        resp = await self._client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            stream=False,
+        )
+        return resp.choices[0].message.content or ""
+
+
+class AzureEmbedder:
+    """Adapts search.py's synchronous AzureOpenAI client to the async Embedder API."""
+    def __init__(self, client, model: str):
+        self._client = client
+        self._model = model
+
+    async def embed(self, text: str) -> list[float]:
+        import asyncio
+        def _run():
+            resp = self._client.embeddings.create(model=self._model, input=text)
+            return resp.data[0].embedding
+        return await asyncio.to_thread(_run)
