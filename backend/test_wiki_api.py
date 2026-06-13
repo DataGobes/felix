@@ -49,3 +49,16 @@ async def test_build_wiki_enqueues(client_for, monkeypatch):
     assert resp.status_code == 200
     assert resp.json()["job_id"] == 77
     assert resp.json()["status"] == "queued"
+
+
+async def test_wiki_stream_emits_event_and_closes(client_for):
+    # A terminal-status job makes the SSE generator emit one event then return,
+    # so the stream closes cleanly (an in-progress status would poll forever and
+    # hang the ASGI test transport, which cannot tear down an infinite generator).
+    client = await client_for({"fetchrow": {"id": 1, "status": "completed", "progress": {},
+                                            "error_message": None}, "fetchval": [1]})
+    async with client.stream("GET", "/indexes/default/wiki/stream") as resp:
+        assert resp.status_code == 200
+        assert "text/event-stream" in resp.headers["content-type"]
+        lines = [line async for line in resp.aiter_lines()]
+    assert any(line.startswith("data:") for line in lines)

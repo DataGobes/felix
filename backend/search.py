@@ -1430,6 +1430,50 @@ async def delete_wiki(slug: str):
     return {"deleted": True, "index_slug": slug}
 
 
+@app.get("/indexes/{slug}/wiki/stream")
+async def wiki_stream(slug: str):
+    """SSE progress for the latest wiki build of an index."""
+    async def event_generator():
+        last = None
+        pool = await get_db_pool()
+        while True:
+            try:
+                async with pool.acquire() as conn:
+                    row = await conn.fetchrow(
+                        """SELECT j.id, j.status, j.progress, j.error_message
+                           FROM wiki_jobs j JOIN indexes i ON i.id = j.index_id
+                           WHERE i.slug = $1 ORDER BY j.created_at DESC LIMIT 1""", slug)
+                if row is None:
+                    payload = {"status": "none"}
+                else:
+                    d = dict(row)
+                    d["progress"] = (json.loads(d["progress"])
+                                     if isinstance(d["progress"], str) else d["progress"])
+                    payload = d
+                current = json.dumps(payload, sort_keys=True, default=str)
+                if current != last:
+                    yield f"data: {json.dumps(payload, default=str)}\n\n"
+                    last = current
+                else:
+                    yield ": keepalive\n\n"
+                # Close the stream once the build reaches a terminal state (or no job
+                # exists). Nothing further will change, so polling forever just holds
+                # the connection open — clients reconnect/refetch if needed.
+                if payload.get("status") in ("completed", "failed", "none"):
+                    return
+            except Exception as e:
+                logger.warning("wiki_sse_poll_error", error=str(e))
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            await asyncio.sleep(2)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive",
+                 "X-Accel-Buffering": "no"},
+    )
+
+
 # ── Upload ────────────────────────────────────────────────────────────────
 
 
