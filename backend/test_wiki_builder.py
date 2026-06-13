@@ -124,3 +124,48 @@ def test_extract_json_fenced_with_nested_objects():
 
 def test_cosine_zero_norm_returns_zero():
     assert wb.cosine([0.0, 0.0], [1.0, 0.0]) == 0.0
+
+
+def _deg_map(rels):
+    return wb.degree_map(rels)
+
+
+def test_degree_map_counts_both_directions():
+    rels = [
+        wb.Relationship(subject="A", predicate="x", object="B"),
+        wb.Relationship(subject="B", predicate="y", object="C"),
+    ]
+    dm = wb.degree_map(rels)
+    assert dm["b"] == 2 and dm["a"] == 1 and dm["c"] == 1
+
+
+def test_score_entity_monotonic():
+    e_small = wb.Entity(name="A", chunk_ids=[1])
+    e_big = wb.Entity(name="A", chunk_ids=[1, 2, 3, 4])
+    deg = {"a": 5}
+    assert wb.score_entity(e_big, deg) > wb.score_entity(e_small, deg)
+    # More degree -> higher score at equal mentions.
+    assert wb.score_entity(e_small, {"a": 9}) > wb.score_entity(e_small, {"a": 0})
+
+
+def test_plan_pages_produces_expected_set():
+    docs = [wb.DocRow(document_id=1, path="card.pdf")]
+    ents = [
+        wb.Entity(name="Claude", type="system", description="model", chunk_ids=[1, 2, 3]),
+        wb.Entity(name="Alignment", type="concept", description="safety", chunk_ids=[1, 2, 3]),
+        wb.Entity(name="Trivia", type="other", description="x", chunk_ids=[9]),
+    ]
+    rels = [wb.Relationship(subject="Claude", predicate="exhibits", object="Alignment", chunk_ids=[1])]
+    pages = wb.plan_pages(docs, ents, rels, threshold=2.0)
+    types = {p.type for p in pages}
+    slugs = {p.slug for p in pages}
+    assert "overview" in types
+    assert "overview" in slugs
+    assert "claude" in slugs            # entity page (high score)
+    assert "alignment" in slugs         # concept page (high score)
+    assert "trivia" not in slugs        # below threshold -> no page
+    # Source page exists for the document.
+    assert any(p.type == "source" for p in pages)
+    # Relationship became a planned cross-link.
+    claude_page = next(p for p in pages if p.slug == "claude")
+    assert "alignment" in claude_page.links

@@ -227,3 +227,76 @@ async def merge_entities_by_embedding(
                 tgt.description = e.description
             tgt.chunk_ids = sorted(set(tgt.chunk_ids) | set(e.chunk_ids))
     return survivors
+
+
+# --------------------------------------------------------------------------
+# Page-set planner
+# --------------------------------------------------------------------------
+
+def degree_map(relationships: list[Relationship]) -> dict[str, int]:
+    """Map normalized entity name -> number of incident relationships."""
+    deg: dict[str, int] = {}
+    for r in relationships:
+        deg[normalize_name(r.subject)] = deg.get(normalize_name(r.subject), 0) + 1
+        deg[normalize_name(r.object)] = deg.get(normalize_name(r.object), 0) + 1
+    return deg
+
+
+def score_entity(entity: Entity, deg: dict[str, int]) -> float:
+    """Significance score deciding whether an entity earns its own page.
+
+    Default heuristic: mentions (chunk count) carry primary weight, graph
+    degree (connectedness) is a secondary boost. Monotonic in both.
+    """
+    mentions = len(entity.chunk_ids)
+    degree = deg.get(normalize_name(entity.name), 0)
+    return mentions + 0.5 * degree
+
+
+def plan_pages(
+    docs: list[DocRow],
+    entities: list[Entity],
+    relationships: list[Relationship],
+    threshold: float = 2.0,
+) -> list[PageSpec]:
+    """Decide the page set from the merged graph."""
+    deg = degree_map(relationships)
+    pages: list[PageSpec] = []
+
+    # 1. Overview (always).
+    pages.append(PageSpec(slug="overview", title="Overview", type="overview",
+                          related_chunk_ids=[]))
+
+    # 2. Source page per document.
+    for d in docs:
+        pages.append(PageSpec(
+            slug=f"source-{d.document_id}",
+            title=d.path.rsplit("/", 1)[-1],
+            type="source",
+            source_document_id=d.document_id,
+        ))
+
+    # 3. Significant entities -> entity/concept pages.
+    name_to_slug: dict[str, str] = {}
+    for e in entities:
+        if score_entity(e, deg) < threshold:
+            continue
+        slug = slugify(e.name)
+        if not slug or slug in {p.slug for p in pages}:
+            continue
+        page_type = "concept" if e.type == "concept" else "entity"
+        pages.append(PageSpec(
+            slug=slug, title=e.name, type=page_type,
+            entity_name=e.name, related_chunk_ids=list(e.chunk_ids),
+        ))
+        name_to_slug[normalize_name(e.name)] = slug
+
+    # 4. Relationships -> planned cross-links between pages that exist.
+    page_by_slug = {p.slug: p for p in pages}
+    for r in relationships:
+        s_slug = name_to_slug.get(normalize_name(r.subject))
+        o_slug = name_to_slug.get(normalize_name(r.object))
+        if s_slug and o_slug and s_slug != o_slug:
+            if o_slug not in page_by_slug[s_slug].links:
+                page_by_slug[s_slug].links.append(o_slug)
+    return pages
