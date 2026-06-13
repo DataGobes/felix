@@ -494,3 +494,96 @@ async def run_write_stage(
             "links": links,
         })
     return written
+
+
+# --------------------------------------------------------------------------
+# asyncpg DB helpers
+# --------------------------------------------------------------------------
+
+async def resolve_index_id(conn, slug: str) -> int:
+    idx = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+    if idx is None:
+        raise ValueError(f"Index '{slug}' not found")
+    return idx
+
+
+async def fetch_index_docs(conn, index_id: int) -> list[DocRow]:
+    rows = await conn.fetch(
+        "SELECT id, path FROM documents WHERE index_id = $1 ORDER BY id", index_id)
+    return [DocRow(document_id=r["id"], path=r["path"]) for r in rows]
+
+
+async def fetch_index_chunks(conn, index_id: int) -> list[ChunkRow]:
+    rows = await conn.fetch(
+        """SELECT c.id AS chunk_id, c.document_id, c.content, c.headings
+           FROM chunks c JOIN documents d ON d.id = c.document_id
+           WHERE d.index_id = $1 ORDER BY c.document_id, c.chunk_index""",
+        index_id)
+    return [ChunkRow(chunk_id=r["chunk_id"], document_id=r["document_id"],
+                     content=r["content"], headings=list(r["headings"] or []))
+            for r in rows]
+
+
+async def clear_wiki(conn, index_id: int) -> None:
+    # wiki_links / entity_chunks / relationships cascade from pages & entities.
+    await conn.execute("DELETE FROM wiki_pages WHERE index_id = $1", index_id)
+    await conn.execute("DELETE FROM wiki_entities WHERE index_id = $1", index_id)
+
+
+async def persist_entities(conn, index_id: int, entities: list[Entity]) -> dict[str, int]:
+    """Insert entities, return normalized_name -> entity_id."""
+    name_to_id: dict[str, int] = {}
+    for e in entities:
+        eid = await conn.fetchval(
+            """INSERT INTO wiki_entities
+                 (index_id, name, normalized_name, type, description, mention_count)
+               VALUES ($1, $2, $3, $4, $5, $6)
+               ON CONFLICT (index_id, normalized_name) DO UPDATE SET
+                 description = EXCLUDED.description, mention_count = EXCLUDED.mention_count
+               RETURNING id""",
+            index_id, e.name, normalize_name(e.name), e.type, e.description, len(e.chunk_ids))
+        name_to_id[normalize_name(e.name)] = eid
+        for cid in e.chunk_ids:
+            await conn.execute(
+                "INSERT INTO entity_chunks (entity_id, chunk_id) VALUES ($1, $2) "
+                "ON CONFLICT DO NOTHING", eid, cid)
+    return name_to_id
+
+
+async def persist_relationships(conn, index_id: int, rels: list[Relationship],
+                                name_to_id: dict[str, int]) -> None:
+    for r in rels:
+        s = name_to_id.get(normalize_name(r.subject))
+        o = name_to_id.get(normalize_name(r.object))
+        if s is None or o is None:
+            continue
+        await conn.execute(
+            """INSERT INTO wiki_relationships
+                 (index_id, subject_entity_id, predicate, object_entity_id, description, chunk_refs)
+               VALUES ($1, $2, $3, $4, $5, $6)""",
+            index_id, s, r.predicate, o, r.description, r.chunk_ids)
+
+
+async def persist_pages(conn, index_id: int, written: list[dict],
+                        name_to_id: dict[str, int]) -> None:
+    slug_to_id: dict[str, int] = {}
+    for w in written:
+        entity_id = name_to_id.get(normalize_name(w["entity_name"])) if w["entity_name"] else None
+        pid = await conn.fetchval(
+            """INSERT INTO wiki_pages
+                 (index_id, slug, title, type, content_md, felix_refs, entity_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)
+               ON CONFLICT (index_id, slug) DO UPDATE SET
+                 content_md = EXCLUDED.content_md, felix_refs = EXCLUDED.felix_refs,
+                 updated_at = NOW()
+               RETURNING id""",
+            index_id, w["slug"], w["title"], w["type"], w["content_md"],
+            w["felix_refs"], entity_id)
+        slug_to_id[w["slug"]] = pid
+    # Links (resolve targets where possible).
+    for w in written:
+        src = slug_to_id[w["slug"]]
+        for target in w["links"]:
+            await conn.execute(
+                "INSERT INTO wiki_links (source_page_id, target_page_id, target_slug) "
+                "VALUES ($1, $2, $3)", src, slug_to_id.get(target), target)

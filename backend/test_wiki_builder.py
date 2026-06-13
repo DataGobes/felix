@@ -311,3 +311,45 @@ async def test_write_stage_skips_zero_evidence_entity_page():
                          entity_name="Ghost", related_chunk_ids=[999])]  # 999 absent
     written = await wb.run_write_stage(specs, chunks, ScriptedLLM())
     assert all(w["slug"] != "ghost" for w in written)
+
+
+class _MockConn:
+    def __init__(self, responses):
+        self.responses = responses
+        self.executed = []
+    async def fetch(self, q, *a):
+        return self.responses.get("fetch", [])
+    async def fetchrow(self, q, *a):
+        return self.responses.get("fetchrow", None)
+    async def fetchval(self, q, *a):
+        vals = self.responses.get("fetchval", [])
+        return vals.pop(0) if isinstance(vals, list) and vals else vals
+    async def execute(self, q, *a):
+        self.executed.append((q, a))
+    def transaction(self):
+        conn = self
+        class _Tx:
+            async def __aenter__(self): return conn
+            async def __aexit__(self, *exc): return False
+        return _Tx()
+
+
+async def test_fetch_index_chunks_maps_rows():
+    conn = _MockConn({"fetch": [
+        {"chunk_id": 1, "document_id": 9, "content": "hello", "headings": ["H1"]},
+    ]})
+    rows = await wb.fetch_index_chunks(conn, index_id=3)
+    assert rows[0].chunk_id == 1 and rows[0].document_id == 9
+    assert rows[0].headings == ["H1"]
+
+
+async def test_resolve_index_id():
+    conn = _MockConn({"fetchval": [42]})
+    assert await wb.resolve_index_id(conn, "default") == 42
+
+
+async def test_resolve_index_id_missing_raises():
+    conn = _MockConn({"fetchval": [None]})
+    import pytest
+    with pytest.raises(ValueError):
+        await wb.resolve_index_id(conn, "nope")
