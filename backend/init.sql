@@ -459,3 +459,78 @@ INSERT INTO pipeline_config (key, value, label, description) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 COMMENT ON TABLE pipeline_config IS 'Pipeline enrichment toggles readable by frontend control panel';
+
+-- ============================================================
+-- LLM-Wiki: entity graph + generated wiki pages (per index)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS wiki_jobs (
+  id            SERIAL PRIMARY KEY,
+  index_id      INTEGER NOT NULL REFERENCES indexes(id) ON DELETE CASCADE,
+  status        VARCHAR(50)  NOT NULL DEFAULT 'queued',
+  progress      JSONB        NOT NULL DEFAULT '{}',
+  error_message TEXT,
+  created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
+  started_at    TIMESTAMP,
+  updated_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
+  completed_at  TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_wiki_jobs_active
+  ON wiki_jobs (status) WHERE status NOT IN ('completed', 'failed');
+
+CREATE TABLE IF NOT EXISTS wiki_entities (
+  id              SERIAL PRIMARY KEY,
+  index_id        INTEGER NOT NULL REFERENCES indexes(id) ON DELETE CASCADE,
+  name            TEXT NOT NULL,
+  normalized_name TEXT NOT NULL,
+  type            VARCHAR(50) NOT NULL DEFAULT 'other',
+  description     TEXT,
+  embedding       VECTOR(1536),
+  mention_count   INTEGER NOT NULL DEFAULT 0,
+  metadata        JSONB NOT NULL DEFAULT '{}',
+  UNIQUE (index_id, normalized_name)
+);
+
+CREATE TABLE IF NOT EXISTS wiki_relationships (
+  id                SERIAL PRIMARY KEY,
+  index_id          INTEGER NOT NULL REFERENCES indexes(id) ON DELETE CASCADE,
+  subject_entity_id INTEGER NOT NULL REFERENCES wiki_entities(id) ON DELETE CASCADE,
+  predicate         TEXT NOT NULL,
+  object_entity_id  INTEGER NOT NULL REFERENCES wiki_entities(id) ON DELETE CASCADE,
+  description       TEXT,
+  chunk_refs        INTEGER[] NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS entity_chunks (
+  entity_id INTEGER NOT NULL REFERENCES wiki_entities(id) ON DELETE CASCADE,
+  chunk_id  INTEGER NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
+  PRIMARY KEY (entity_id, chunk_id)
+);
+
+CREATE TABLE IF NOT EXISTS wiki_pages (
+  id          SERIAL PRIMARY KEY,
+  index_id    INTEGER NOT NULL REFERENCES indexes(id) ON DELETE CASCADE,
+  slug        VARCHAR(200) NOT NULL,
+  title       TEXT NOT NULL,
+  type        VARCHAR(50) NOT NULL,
+  content_md  TEXT NOT NULL DEFAULT '',
+  frontmatter JSONB NOT NULL DEFAULT '{}',
+  felix_refs  INTEGER[] NOT NULL DEFAULT '{}',
+  entity_id   INTEGER REFERENCES wiki_entities(id) ON DELETE SET NULL,
+  created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (index_id, slug)
+);
+
+CREATE TABLE IF NOT EXISTS wiki_links (
+  id             SERIAL PRIMARY KEY,
+  source_page_id INTEGER NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+  target_page_id INTEGER REFERENCES wiki_pages(id) ON DELETE CASCADE,
+  target_slug    VARCHAR(200) NOT NULL,
+  link_type      VARCHAR(50) NOT NULL DEFAULT 'wiki'
+);
+
+CREATE INDEX IF NOT EXISTS idx_wiki_pages_index ON wiki_pages(index_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_entities_index ON wiki_entities(index_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_links_source ON wiki_links(source_page_id);
