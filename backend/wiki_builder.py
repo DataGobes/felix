@@ -318,15 +318,16 @@ Hard rules:
 - Be concise; flag contradictions or uncertainty explicitly."""
 
 
-def render_frontmatter(spec: PageSpec, sources: list[str]) -> str:
-    refs = ", ".join(f"chunk:{c}" for c in spec.related_chunk_ids)
+def render_frontmatter(spec: PageSpec, sources: list[str], refs: Optional[list[int]] = None) -> str:
+    ref_ids = refs if refs is not None else spec.related_chunk_ids
+    refs_str = ", ".join(f"chunk:{c}" for c in ref_ids)
     src = ", ".join(sources)
     return (
         "---\n"
         f"title: {spec.title}\n"
         f"type: {spec.type}\n"
         f"sources: [{src}]\n"
-        f"felix_refs: [{refs}]\n"
+        f"felix_refs: [{refs_str}]\n"
         "---"
     )
 
@@ -473,18 +474,22 @@ async def run_write_stage(
             relevant = all_chunks[:20]
         else:
             relevant = [chunk_by_id[c] for c in spec.related_chunk_ids if c in chunk_by_id]
+        # Skip zero-evidence entity/concept pages rather than letting the LLM hallucinate.
+        if not relevant and spec.type in ("entity", "concept"):
+            continue
         link_titles = {slug: title_by_slug.get(slug, slug) for slug in spec.links}
         system, user = build_page_prompt(spec, relevant, link_titles)
         body = await llm.complete(system, user)
-        sources = sorted({chunk_by_id[c].document_id for c in extract_felix_refs(body) if c in chunk_by_id})
-        frontmatter = render_frontmatter(spec, sources=[f"doc:{d}" for d in sources] or ["corpus"])
+        body_refs = extract_felix_refs(body)
+        sources = sorted({chunk_by_id[c].document_id for c in body_refs if c in chunk_by_id})
+        frontmatter = render_frontmatter(spec, sources=[f"doc:{d}" for d in sources] or ["corpus"], refs=body_refs)
         links = sorted(set(spec.links) | set(extract_wiki_links(body)))
         written.append({
             "slug": spec.slug,
             "title": spec.title,
             "type": spec.type,
             "content_md": f"{frontmatter}\n\n{body}",
-            "felix_refs": extract_felix_refs(body),
+            "felix_refs": body_refs,
             "entity_name": spec.entity_name,
             "links": links,
         })

@@ -293,3 +293,21 @@ async def test_full_pipeline_in_memory():
     all_links = [(w["slug"], t) for w in written for t in w["links"]]
     orphans = wb.find_orphans([w["slug"] for w in written], all_links)
     assert "alignment" not in orphans
+
+
+async def test_write_stage_frontmatter_uses_body_citations():
+    # overview has related_chunk_ids=[] but the body cites chunk:1 -> frontmatter must show it.
+    chunks = [wb.ChunkRow(chunk_id=1, document_id=1, content="x")]
+    specs = [wb.PageSpec(slug="overview", title="Overview", type="overview", related_chunk_ids=[])]
+    written = await wb.run_write_stage(specs, chunks, ScriptedLLM())
+    ov = next(w for w in written if w["slug"] == "overview")
+    assert "felix_refs: [chunk:1]" in ov["content_md"]
+    assert ov["felix_refs"] == [1]
+
+
+async def test_write_stage_skips_zero_evidence_entity_page():
+    chunks = [wb.ChunkRow(chunk_id=1, document_id=1, content="x")]
+    specs = [wb.PageSpec(slug="ghost", title="Ghost", type="entity",
+                         entity_name="Ghost", related_chunk_ids=[999])]  # 999 absent
+    written = await wb.run_write_stage(specs, chunks, ScriptedLLM())
+    assert all(w["slug"] != "ghost" for w in written)
