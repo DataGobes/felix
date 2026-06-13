@@ -587,3 +587,74 @@ async def persist_pages(conn, index_id: int, written: list[dict],
             await conn.execute(
                 "INSERT INTO wiki_links (source_page_id, target_page_id, target_slug) "
                 "VALUES ($1, $2, $3)", src, slug_to_id.get(target), target)
+
+
+# --------------------------------------------------------------------------
+# Job state-machine
+# --------------------------------------------------------------------------
+
+async def update_job(conn, job_id: int, status: str, progress: dict | None = None,
+                     error_message: str | None = None) -> None:
+    sets = ["status = $2", "updated_at = NOW()"]
+    params = [job_id, status]
+    n = 3
+    if progress is not None:
+        sets.append(f"progress = progress || ${n}::jsonb")
+        params.append(json.dumps(progress)); n += 1
+    if error_message is not None:
+        sets.append(f"error_message = ${n}")
+        params.append(error_message); n += 1
+    sets.append("started_at = COALESCE(started_at, CASE WHEN $2 != 'queued' THEN NOW() ELSE NULL END)")
+    if status in ("completed", "failed"):
+        sets.append("completed_at = NOW()")
+    await conn.execute(f"UPDATE wiki_jobs SET {', '.join(sets)} WHERE id = $1", *params)
+
+
+async def run_wiki_build(pool, llm: LLM, embedder: "Embedder | None",
+                         index_slug: str, job_id: int, timestamp: str) -> None:
+    """Top-level orchestrator. Advances wiki_jobs through the pipeline. Never raises;
+    failures are recorded on the job row."""
+    try:
+        async with pool.acquire() as conn:
+            index_id = await resolve_index_id(conn, index_slug)
+            docs = await fetch_index_docs(conn, index_id)
+            chunks = await fetch_index_chunks(conn, index_id)
+            await clear_wiki(conn, index_id)
+
+        await _with_job(pool, job_id, "extracting", {"documents": len(docs)})
+        entities, rels = await run_extract_stage(chunks, llm)
+        if embedder is not None and entities:
+            entities = await merge_entities_by_embedding(entities, embedder)
+
+        await _with_job(pool, job_id, "planning", {"entities": len(entities)})
+        specs = plan_pages(docs, entities, rels)
+
+        await _with_job(pool, job_id, "writing", {"pages": len(specs)})
+        written = await run_write_stage(specs, chunks, llm)
+
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                name_to_id = await persist_entities(conn, index_id, entities)
+                await persist_relationships(conn, index_id, rels, name_to_id)
+                await persist_pages(conn, index_id, written, name_to_id)
+                # index + log pages.
+                idx_md = render_index(specs)
+                await persist_pages(conn, index_id, [{
+                    "slug": "index", "title": "Wiki Index", "type": "index",
+                    "content_md": idx_md, "felix_refs": [], "entity_name": None, "links": [],
+                }], name_to_id)
+
+        await _with_job(pool, job_id, "linting", {})
+        all_links = [(w["slug"], t) for w in written for t in w["links"]]
+        orphans = find_orphans([w["slug"] for w in written], all_links)
+
+        await _with_job(pool, job_id, "completed",
+                        {"pages": len(written), "entities": len(entities), "orphans": orphans})
+    except Exception as e:  # noqa: BLE001 — record failure on the job, never crash worker
+        async with pool.acquire() as conn:
+            await update_job(conn, job_id, "failed", error_message=str(e))
+
+
+async def _with_job(pool, job_id: int, status: str, progress: dict) -> None:
+    async with pool.acquire() as conn:
+        await update_job(conn, job_id, status, progress=progress)

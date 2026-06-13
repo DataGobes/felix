@@ -353,3 +353,18 @@ async def test_resolve_index_id_missing_raises():
     import pytest
     with pytest.raises(ValueError):
         await wb.resolve_index_id(conn, "nope")
+
+
+async def test_update_job_sets_fields():
+    conn = _MockConn({})
+    await wb.update_job(conn, job_id=5, status="extracting", progress={"docs": 2})
+    q, args = conn.executed[-1]
+    assert "UPDATE wiki_jobs" in q
+    assert 5 in args
+
+
+async def test_set_job_started_and_completed_helpers():
+    conn = _MockConn({})
+    await wb.update_job(conn, job_id=1, status="completed")
+    q, _ = conn.executed[-1]
+    assert "completed_at = NOW()" in q
