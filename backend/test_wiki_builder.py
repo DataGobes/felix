@@ -201,3 +201,22 @@ def test_build_page_prompt_contains_citation_rules_and_chunks():
     assert "[[alignment]]" in user or "[[Alignment]]" in user
     assert "[chunk:7]" in user
     assert "Cybench" in user
+
+
+def test_find_orphans():
+    # pages: overview links to claude; claude links to nothing; ghost has no inbound.
+    page_slugs = ["overview", "claude", "ghost"]
+    links = [("overview", "claude")]
+    orphans = wb.find_orphans(page_slugs, links)
+    # overview is a root (exempt); claude has inbound; ghost is an orphan.
+    assert orphans == ["ghost"]
+
+
+def test_render_index_lists_pages_by_type():
+    rendered = wb.render_index([
+        wb.PageSpec(slug="overview", title="Overview", type="overview"),
+        wb.PageSpec(slug="claude", title="Claude", type="entity"),
+    ])
+    assert "# Wiki Index" in rendered
+    assert "[[claude]]" in rendered
+    assert "Overview" in rendered

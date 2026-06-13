@@ -360,3 +360,41 @@ def build_page_prompt(
         f"Source chunks (cite these as [Felix:chunk:N]):\n\n{chunk_text}"
     )
     return _PAGE_SYSTEM, user
+
+
+# --------------------------------------------------------------------------
+# Lint + assembly helpers
+# --------------------------------------------------------------------------
+
+ROOT_SLUGS = {"overview", "index", "log"}
+
+
+def find_orphans(page_slugs: list[str], links: list[tuple[str, str]]) -> list[str]:
+    """Pages with no inbound links (root pages exempt)."""
+    inbound = {target for _, target in links}
+    return [s for s in page_slugs if s not in inbound and s not in ROOT_SLUGS]
+
+
+def render_index(specs: list[PageSpec]) -> str:
+    by_type: dict[str, list[PageSpec]] = {}
+    for s in specs:
+        by_type.setdefault(s.type, []).append(s)
+    lines = ["# Wiki Index", ""]
+    for ptype in ["overview", "source", "entity", "concept", "chapter"]:
+        group = by_type.get(ptype)
+        if not group:
+            continue
+        lines.append(f"## {ptype.capitalize()}")
+        for s in sorted(group, key=lambda x: x.title):
+            lines.append(f"- [[{s.slug}]] — {s.title}")
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_log_entry(timestamp: str, n_docs: int, n_entities: int, n_pages: int) -> str:
+    return (
+        f"## Build {timestamp}\n"
+        f"- documents: {n_docs}\n"
+        f"- entities: {n_entities}\n"
+        f"- pages: {n_pages}\n"
+    )
