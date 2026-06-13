@@ -499,6 +499,7 @@ CREATE TABLE IF NOT EXISTS wiki_relationships (
   predicate         TEXT NOT NULL,
   object_entity_id  INTEGER NOT NULL REFERENCES wiki_entities(id) ON DELETE CASCADE,
   description       TEXT,
+  -- denormalized chunk provenance for this specific relationship (entity-level provenance lives in entity_chunks)
   chunk_refs        INTEGER[] NOT NULL DEFAULT '{}'
 );
 
@@ -534,3 +535,7 @@ CREATE TABLE IF NOT EXISTS wiki_links (
 CREATE INDEX IF NOT EXISTS idx_wiki_pages_index ON wiki_pages(index_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_entities_index ON wiki_entities(index_id);
 CREATE INDEX IF NOT EXISTS idx_wiki_links_source ON wiki_links(source_page_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_relationships_subject ON wiki_relationships(subject_entity_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_relationships_object ON wiki_relationships(object_entity_id);
+CREATE INDEX IF NOT EXISTS idx_entity_chunks_chunk_id ON entity_chunks(chunk_id);
+CREATE INDEX IF NOT EXISTS idx_wiki_links_target_slug ON wiki_links(target_slug);
