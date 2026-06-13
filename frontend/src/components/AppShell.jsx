@@ -4,6 +4,7 @@ import Footer from './Footer'
 const NAV_ITEMS = [
   { to: '/documents', label: 'Documents' },
   { to: '/search', label: 'Search' },
+  { to: '/wiki', label: 'Wiki' },
   { to: '/chat', label: 'Chat' },
 ]
 
