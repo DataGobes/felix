@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import asyncpg
 from openai import AzureOpenAI
+import wiki_builder as wiki
 
 # Configure logging
 structlog.configure(
@@ -240,6 +241,18 @@ async def lifespan(app: FastAPI):
 
     client = get_openai_client()
     logger.info("openai_client_ready", endpoint=AZURE_ENDPOINT, model=AZURE_EMBEDDING_MODEL)
+
+    # Reap orphaned wiki jobs: a non-terminal job at startup means the worker
+    # died mid-build; mark it failed so it doesn't block new builds or hang the UI.
+    try:
+        pool = await get_db_pool()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE wiki_jobs SET status = 'failed', "
+                "error_message = 'interrupted by restart', completed_at = NOW() "
+                "WHERE status NOT IN ('completed', 'failed')")
+    except Exception as e:
+        logger.warning("wiki_job_reap_failed", error=str(e))
 
     yield
 
@@ -1315,6 +1328,176 @@ async def delete_index(slug: str):
         except OSError:
             pass
     return {"status": "ok", "message": f"Index '{slug}' deleted"}
+
+
+# ── Wiki ──────────────────────────────────────────────────────────────────
+
+# Strong references to background wiki-build tasks — prevents GC cancellation.
+_wiki_tasks: set = set()
+
+
+def _build_llm():
+    return wiki.MiniMaxLLM(_chat_client, _CHAT_MODEL)
+
+
+def _build_embedder():
+    return wiki.AzureEmbedder(get_openai_client(), AZURE_EMBEDDING_MODEL)
+
+
+@app.post("/indexes/{slug}/wiki/build")
+async def build_wiki(slug: str):
+    """Enqueue an autonomous wiki build for an index. Rejects if one is already running."""
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+        if index_id is None:
+            raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
+        active = await conn.fetchval(
+            "SELECT id FROM wiki_jobs WHERE index_id = $1 "
+            "AND status NOT IN ('completed', 'failed') LIMIT 1", index_id)
+        if active is not None:
+            raise HTTPException(status_code=409, detail="A wiki build is already in progress for this index")
+        try:
+            job_id = await conn.fetchval(
+                "INSERT INTO wiki_jobs (index_id, status) VALUES ($1, 'queued') RETURNING id",
+                index_id)
+        except asyncpg.UniqueViolationError:
+            raise HTTPException(status_code=409, detail="A wiki build is already in progress for this index")
+
+    from datetime import datetime, timezone
+    ts = datetime.now(timezone.utc).isoformat()
+    task = asyncio.create_task(
+        wiki.run_wiki_build(pool, _build_llm(), _build_embedder(), slug, job_id, ts))
+    if hasattr(task, "add_done_callback"):
+        _wiki_tasks.add(task)
+        task.add_done_callback(_wiki_tasks.discard)
+    return {"job_id": job_id, "status": "queued", "index_slug": slug}
+
+
+@app.get("/indexes/{slug}/wiki")
+async def list_wiki_pages(slug: str):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+        if index_id is None:
+            raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
+        rows = await conn.fetch(
+            "SELECT slug, title, type FROM wiki_pages WHERE index_id = $1 ORDER BY type, title",
+            index_id)
+        return {"pages": [dict(r) for r in rows]}
+
+
+@app.get("/indexes/{slug}/wiki/pages/{page_slug}")
+async def get_wiki_page(slug: str, page_slug: str):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+        if index_id is None:
+            raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
+        row = await conn.fetchrow(
+            "SELECT slug, title, type, content_md, felix_refs FROM wiki_pages "
+            "WHERE index_id = $1 AND slug = $2", index_id, page_slug)
+        if row is None:
+            raise HTTPException(status_code=404, detail=f"Page '{page_slug}' not found")
+        links = await conn.fetch(
+            "SELECT wl.target_slug, wp.title FROM wiki_links wl "
+            "JOIN wiki_pages src ON src.id = wl.source_page_id "
+            "LEFT JOIN wiki_pages wp ON wp.id = wl.target_page_id "
+            "WHERE src.index_id = $1 AND src.slug = $2", index_id, page_slug)
+        return {**dict(row), "links": [dict(l) for l in links]}
+
+
+@app.get("/indexes/{slug}/wiki/graph")
+async def get_wiki_graph(slug: str):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+        if index_id is None:
+            raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
+        ents = await conn.fetch(
+            "SELECT id, name, type, mention_count FROM wiki_entities WHERE index_id = $1", index_id)
+        rels = await conn.fetch(
+            "SELECT subject_entity_id, object_entity_id, predicate "
+            "FROM wiki_relationships WHERE index_id = $1", index_id)
+        nodes = [{"id": e["id"], "label": e["name"], "type": e["type"],
+                  "weight": e["mention_count"]} for e in ents]
+        edges = [{"source": r["subject_entity_id"], "target": r["object_entity_id"],
+                  "label": r["predicate"]} for r in rels]
+        return {"nodes": nodes, "edges": edges}
+
+
+@app.get("/indexes/{slug}/wiki/status")
+async def wiki_status(slug: str):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """SELECT j.id, j.status, j.progress, j.error_message,
+                      j.created_at, j.completed_at
+               FROM wiki_jobs j JOIN indexes i ON i.id = j.index_id
+               WHERE i.slug = $1 ORDER BY j.created_at DESC LIMIT 1""", slug)
+        if row is None:
+            return {"status": "none"}
+        d = dict(row)
+        d["progress"] = json.loads(d["progress"]) if isinstance(d["progress"], str) else d["progress"]
+        for k in ("created_at", "completed_at"):
+            d[k] = d[k].isoformat() if d[k] else None
+        return d
+
+
+@app.delete("/indexes/{slug}/wiki")
+async def delete_wiki(slug: str):
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        index_id = await conn.fetchval("SELECT id FROM indexes WHERE slug = $1", slug)
+        if index_id is None:
+            raise HTTPException(status_code=404, detail=f"Index '{slug}' not found")
+        await conn.execute("DELETE FROM wiki_pages WHERE index_id = $1", index_id)
+        await conn.execute("DELETE FROM wiki_entities WHERE index_id = $1", index_id)
+    return {"deleted": True, "index_slug": slug}
+
+
+@app.get("/indexes/{slug}/wiki/stream")
+async def wiki_stream(slug: str):
+    """SSE progress for the latest wiki build of an index."""
+    async def event_generator():
+        last = None
+        pool = await get_db_pool()
+        while True:
+            try:
+                async with pool.acquire() as conn:
+                    row = await conn.fetchrow(
+                        """SELECT j.id, j.status, j.progress, j.error_message
+                           FROM wiki_jobs j JOIN indexes i ON i.id = j.index_id
+                           WHERE i.slug = $1 ORDER BY j.created_at DESC LIMIT 1""", slug)
+                if row is None:
+                    payload = {"status": "none"}
+                else:
+                    d = dict(row)
+                    d["progress"] = (json.loads(d["progress"])
+                                     if isinstance(d["progress"], str) else d["progress"])
+                    payload = d
+                current = json.dumps(payload, sort_keys=True, default=str)
+                if current != last:
+                    yield f"data: {json.dumps(payload, default=str)}\n\n"
+                    last = current
+                else:
+                    yield ": keepalive\n\n"
+                # Close the stream once the build reaches a terminal state (or no job
+                # exists). Nothing further will change, so polling forever just holds
+                # the connection open — clients reconnect/refetch if needed.
+                if payload.get("status") in ("completed", "failed", "none"):
+                    return
+            except Exception as e:
+                logger.warning("wiki_sse_poll_error", error=str(e))
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            await asyncio.sleep(2)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "keep-alive",
+                 "X-Accel-Buffering": "no"},
+    )
 
 
 # ── Upload ────────────────────────────────────────────────────────────────

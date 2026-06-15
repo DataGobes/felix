@@ -208,3 +208,34 @@ export async function* streamChat(message, history = [], indexSlug = null, { sho
     } catch {}
   }
 }
+
+export const buildWiki = async (indexSlug) => {
+  const response = await fetch(`${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki/build`, {
+    method: 'POST',
+  })
+  return response.json()
+}
+
+export const getWikiPages = async (indexSlug) => {
+  const response = await fetch(`${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki`)
+  return response.json()
+}
+
+export const getWikiPage = async (indexSlug, pageSlug) => {
+  const response = await fetch(
+    `${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki/pages/${encodeURIComponent(pageSlug)}`)
+  return response.json()
+}
+
+export const getWikiGraph = async (indexSlug) => {
+  const response = await fetch(`${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki/graph`)
+  return response.json()
+}
+
+export const getWikiStatus = async (indexSlug) => {
+  const response = await fetch(`${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki/status`)
+  return response.json()
+}
+
+export const wikiStreamUrl = (indexSlug) =>
+  `${API_URL}/indexes/${encodeURIComponent(indexSlug)}/wiki/stream`

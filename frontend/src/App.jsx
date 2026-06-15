@@ -5,6 +5,7 @@ import AppShell from './components/AppShell'
 import Documents from './components/Documents'
 import Search from './components/Search'
 import Chat from './components/Chat'
+import Wiki from './components/Wiki'
 import ChunksViewer from './components/ChunksViewer'
 import ControlPanel from './components/ControlPanel'
 import DocumentViewer from './pages/DocumentViewer'
@@ -54,6 +55,12 @@ function ChatPage() {
   )
 }
 
+function WikiPage() {
+  return (
+    <Wiki />
+  )
+}
+
 function SettingsPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -73,6 +80,7 @@ function App() {
       <Route element={<AppShell />}>
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/wiki" element={<WikiPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
